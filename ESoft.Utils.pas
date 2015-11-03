@@ -15,11 +15,11 @@ Uses
   IniFiles,
   Vcl.Dialogs,
   Vcl.Controls,
-  BackgroundWorker,
   Registry;
 
 Const
   cInvalidAppCode = 1;
+  cNoNewAppVersionAvailablePrompt = 'No new update available.';
   cNewAppVersionAvailablePrompt = 'New version of application is available.' + sLineBreak + 'Do you want to update ?';
   cAppVersionFileLink = 'http://esoft.ucoz.com/ESoft_Licence/ESoft_App_Version.txt';
   cUniqueFileFormat = '%s-%s';
@@ -214,41 +214,6 @@ Begin
   Finally
     varList.Free;
     varHtttp.Free;
-  End;
-End;
-
-Function DownloadInBackGround(
-  Const aOwner: TComponent;
-  Const aURL, aFileName: String): Boolean;
-
-  Procedure ButtonClicked(
-    Sender: TObject;
-    ModalResult: TModalResult;
-    Var CanClose: Boolean);
-  Begin
-
-  End;
-
-Var
-  varTaskDialog: TTaskDialog;
-  varBackGnd: TBackgroundWorker;
-Begin
-  varTaskDialog := TTaskDialog.Create(aOwner);
-  varBackGnd := TBackgroundWorker.Create(aOwner);
-  Try
-    varTaskDialog.Caption := 'ESoft application downloader';
-    varTaskDialog.Title := 'Downloading application';
-    varTaskDialog.Text := 'Please wait . . . ';
-    With varTaskDialog.Buttons.Add Do
-    Begin
-      Caption := 'Close';
-      Enabled := False;
-    End;
-    varTaskDialog.CommonButtons := [];
-    varTaskDialog.Flags := varTaskDialog.Flags + [tfShowMarqueeProgressBar] - [tfAllowDialogCancellation];
-    // varTaskDialog.OnButtonClicked := ButtonClicked;
-  Finally
-    varBackGnd.Free;
   End;
 End;
 

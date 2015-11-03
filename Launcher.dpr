@@ -16,8 +16,7 @@ uses
   ESoft.Launcher.UI.ParamEditor in 'ESoft.Launcher.UI.ParamEditor.pas' {FormParamEditor},
   ESoft.Launcher.UI.ParamBrowser in 'ESoft.Launcher.UI.ParamBrowser.pas' {FormParameterBrowser},
   ESoft.Utils in 'ESoft.Utils.pas',
-  ESoft.Launcher.UI.BackupRestore in 'ESoft.Launcher.UI.BackupRestore.pas' {FormBackupRestore},
-  ESoft.Core.Base.Utils in 'ESoft.Core.Base.Utils.pas';
+  ESoft.Launcher.UI.BackupRestore in 'ESoft.Launcher.UI.BackupRestore.pas' {FormBackupRestore};
 
 {$R *.res}
 

@@ -36,7 +36,7 @@ object FormMDIMain: TFormMDIMain
       Left = 10
       Top = 5
       Width = 66
-      Height = 19
+      Height = 13
       Margins.Left = 8
       Align = alLeft
       Caption = 'Connections'
@@ -47,7 +47,6 @@ object FormMDIMain: TFormMDIMain
       Font.Style = [fsBold]
       ParentFont = False
       Layout = tlCenter
-      ExplicitHeight = 13
     end
     object sBtnBrowseConnection: TSpeedButton
       AlignWithMargins = True
@@ -133,7 +132,7 @@ object FormMDIMain: TFormMDIMain
     Left = 32
     Top = 104
     Bitmap = {
-      494C01012C004800900010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      494C01012C0048009C0010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       000000000000360000002800000040000000C0000000010020000000000000C0
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -1878,7 +1877,7 @@ object FormMDIMain: TFormMDIMain
         ModalResult = 8
       end>
     Caption = 'ESoft application downloader'
-    CommonButtons = []
+    CommonButtons = [tcbCancel]
     Flags = [tfAllowDialogCancellation, tfShowMarqueeProgressBar, tfCallbackTimer]
     RadioButtons = <>
     Text = 'Please wait . . . '
@@ -1888,8 +1887,10 @@ object FormMDIMain: TFormMDIMain
     Left = 64
     Top = 168
   end
-  object BackgroundWorker1: TBackgroundWorker
-    Left = 128
-    Top = 280
+  object BackgroundWorker: TBackgroundWorker
+    OnWork = BackgroundWorkerWork
+    OnWorkComplete = BackgroundWorkerWorkComplete
+    Left = 32
+    Top = 168
   end
 end

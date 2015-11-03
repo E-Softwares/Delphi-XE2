@@ -22,6 +22,7 @@ Uses
   Vcl.ExtCtrls,
   Vcl.ImgList,
   IniFiles,
+  URLMon,
   Generics.Collections,
   Vcl.Buttons,
   Vcl.Menus,
@@ -29,7 +30,6 @@ Uses
   Vcl.AppEvnts,
   Vcl.ComCtrls,
   ESoft.Launcher.Application,
-  UrlMon,
   ESoft.Launcher.Parameter,
   System.Zip,
   ESoft.Utils,
@@ -37,7 +37,10 @@ Uses
   IdComponent,
   IdTCPConnection,
   IdTCPClient,
-  IdHTTP, BackgroundWorker;
+  IdHTTP,
+  ShellApi,
+  WinInet,
+  BackgroundWorker;
 
 Const
   cESoftLauncher = 'ESoft_Launcher';
@@ -90,7 +93,7 @@ Type
     MenuHelp: TMenuItem;
     PMItemCheckforupdate: TMenuItem;
     TaskDialogZipDownloader: TTaskDialog;
-    BackgroundWorker1: TBackgroundWorker;
+    BackgroundWorker: TBackgroundWorker;
     Procedure sBtnBrowseConnectionClick(Sender: TObject);
     Procedure edtConnectionRightButtonClick(Sender: TObject);
     Procedure FormCreate(Sender: TObject);
@@ -124,10 +127,15 @@ Type
       Sender: TObject;
       TickCount: Cardinal;
       Var Reset: Boolean);
+    Procedure BackgroundWorkerWorkComplete(
+      Worker: TBackgroundWorker;
+      Cancelled: Boolean);
+    Procedure BackgroundWorkerWork(Worker: TBackgroundWorker);
   Private
     // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
   Strict Private
     // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
+    FFileDownloaded: Boolean;
     FLastUsedParamCode: String;
     FRunAsAdmin: Boolean;
     FParameters: TEParameters;
@@ -209,6 +217,51 @@ End;
 Procedure TFormMDIMain.ApplicationEventsMinimize(Sender: TObject);
 Begin
   Hide;
+End;
+
+Procedure TFormMDIMain.BackgroundWorkerWork(Worker: TBackgroundWorker);
+Var
+  varFileStream: TFileStream;
+  hSession: HINTERNET;
+  hService: HINTERNET;
+  lpBuffer: Array [0 .. 1024 + 1] Of Char;
+  dwBytesRead: DWORD;
+Begin
+  hSession := InternetOpen('MyApp', INTERNET_OPEN_TYPE_PRECONFIG, Nil, Nil, 0);
+  Try
+    If Assigned(hSession) Then
+    Begin
+      hService := InternetOpenUrl(hSession, PChar(cAppZipFileNameInSite), Nil, 0, 0, 0);
+      If Assigned(hService) Then
+        Try
+          varFileStream := TFileStream.Create(ParamStr(0) + '.zip', fmCreate);
+          While Not BackgroundWorker.CancellationPending Do
+          Begin
+            dwBytesRead := 1024;
+            InternetReadFile(hService, @lpBuffer, 1024, dwBytesRead);
+            If dwBytesRead = 0 Then
+              Break;
+            lpBuffer[dwBytesRead] := #0;
+            varFileStream.WriteBuffer(lpBuffer, dwBytesRead);
+          End;
+          If BackgroundWorker.CancellationPending Then
+            BackgroundWorker.AcceptCancellation;
+        Finally
+          InternetCloseHandle(hService);
+          varFileStream.Free;
+        End;
+    End;
+  Finally
+    InternetCloseHandle(hSession);
+  End;
+End;
+
+Procedure TFormMDIMain.BackgroundWorkerWorkComplete(
+  Worker: TBackgroundWorker;
+  Cancelled: Boolean);
+Begin
+  FFileDownloaded := Not Worker.IsCancelled;
+  TaskDialogZipDownloader.Buttons[0].Click;
 End;
 
 Function TFormMDIMain.BackupFolder: String;
@@ -403,14 +456,13 @@ End;
 Procedure TFormMDIMain.PMItemCheckforupdateClick(Sender: TObject);
 Var
   iAppVersion: Integer;
-  varFileStream: TFileStream;
   sZipFilaeName: String;
   varZipFile: TZipFile;
-  varHttp: TIdHTTP;
 Begin
+  FFileDownloaded := False;
   TaskDialogZipDownloader.Flags := TaskDialogZipDownloader.Flags - [tfAllowDialogCancellation];
   iAppVersion := StrToInt(GetAppVersionFromSite(cUniqueAppVersionCode));
-  If cApplication_Version <= iAppVersion Then
+  If cApplication_Version < iAppVersion Then
   Begin
     If MessageDlg(cNewAppVersionAvailablePrompt, mtWarning, [mbYes, mbNo], 0, mbNo) = mrYes Then
     Begin
@@ -421,24 +473,25 @@ Begin
         If Not DeleteFile(sZipFilaeName) Then
           Raise Exception.Create('Cannot delete the file.');
       End;
-      varFileStream := TFileStream.Create(sZipFilaeName, fmCreate);
       varZipFile := TZipFile.Create;
-      varHttp := TIdHTTP.Create;
-      TaskDialogZipDownloader.Execute;
       Try
-        varHttp.Get(cAppZipFileNameInSite, varFileStream);
-        RenameFile(ParamStr(0), ParentFolder + 'Old_' + ExtractFileName(ParamStr(0)));
-        varZipFile.ExtractZipFile(sZipFilaeName, ParentFolder);
-        MessageDlg('Application updated.', mtWarning, [mbOK], 0);
-        Close;
+        BackgroundWorker.Execute;
+        TaskDialogZipDownloader.Execute;
+        If FFileDownloaded Then
+        Begin
+          RenameFile(ParamStr(0), ParentFolder + 'Old_' + ExtractFileName(ParamStr(0)));
+          varZipFile.ExtractZipFile(sZipFilaeName, ParentFolder);
+          MessageDlg('Application updated.', mtWarning, [mbOK], 0);
+          Close;
+        End;
       Finally
-        varHttp.Free;
         varZipFile.Free;
-        varFileStream.Free;
         TaskDialogZipDownloader.Buttons[0].Click;
       End;
     End;
-  End;
+  End
+  Else
+    MessageDlg(cNoNewAppVersionAvailablePrompt, mtInformation, [mbOK], 0);
 End;
 
 Procedure TFormMDIMain.PMItemDeleteGroupClick(Sender: TObject);
@@ -549,7 +602,10 @@ Procedure TFormMDIMain.TaskDialogZipDownloaderButtonClicked(
   ModalResult: TModalResult;
   Var CanClose: Boolean);
 Begin
-  ModalResult := mrOk;
+  If ModalResult = mrCancel Then
+    BackgroundWorker.Cancel;
+  BackgroundWorker.WaitFor;
+  CanClose := Not BackgroundWorker.IsWorking;
 End;
 
 Procedure TFormMDIMain.TaskDialogZipDownloaderTimer(
