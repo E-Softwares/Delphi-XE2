@@ -72,7 +72,7 @@
 		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
 			<VerInfo_Build>1</VerInfo_Build>
 			<DCC_Define>AbbreviaZipper;$(DCC_Define)</DCC_Define>
-			<Icon_MainIcon>..\res\drwables\EG_Icon\EG_Icon_Org.ico</Icon_MainIcon>
+			<Icon_MainIcon>F:\My Pictures\Icons\EG_Icon_Org.ico</Icon_MainIcon>
 			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
 			<VerInfo_Locale>1033</VerInfo_Locale>
 			<VerInfo_Keys>CompanyName=E-Softwares;FileDescription=;FileVersion=1.0.0.1;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.1;Comments=</VerInfo_Keys>
