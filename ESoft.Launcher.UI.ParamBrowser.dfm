@@ -38,7 +38,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 10
       Top = 5
       Width = 37
-      Height = 28
+      Height = 15
       Margins.Left = 8
       Align = alLeft
       Caption = 'Search'
@@ -49,7 +49,6 @@ object FormParameterBrowser: TFormParameterBrowser
       Font.Style = [fsBold]
       ParentFont = False
       Layout = tlCenter
-      ExplicitHeight = 15
     end
     object edtFilter: TButtonedEdit
       AlignWithMargins = True
@@ -62,7 +61,6 @@ object FormParameterBrowser: TFormParameterBrowser
       Margins.Right = 8
       Margins.Bottom = 7
       Align = alClient
-      Images = FormMDIMain.ImageList
       RightButton.ImageIndex = 24
       RightButton.Visible = True
       TabOrder = 0
@@ -80,7 +78,7 @@ object FormParameterBrowser: TFormParameterBrowser
       DropDownMenu = PopupMenuAdditionalParameters
       ImageAlignment = iaRight
       ImageIndex = 9
-      Images = FormMDIMain.ImageList
+      Images = FormMDIMain.ImageList_20
       Style = bsSplitButton
       TabOrder = 1
       TabStop = False
@@ -104,7 +102,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 5
       Top = 5
       Width = 106
-      Height = 25
+      Height = 15
       Align = alLeft
       Caption = 'Selected Parameter '
       Font.Charset = ANSI_CHARSET
@@ -114,17 +112,15 @@ object FormParameterBrowser: TFormParameterBrowser
       Font.Style = [fsBold]
       ParentFont = False
       Layout = tlCenter
-      ExplicitHeight = 15
     end
     object lblParameter: TLabel
       AlignWithMargins = True
       Left = 5
       Top = 36
-      Width = 678
+      Width = 3
       Height = 13
       Align = alBottom
       Layout = tlCenter
-      ExplicitWidth = 3
     end
     object btnCancel: TButton
       AlignWithMargins = True
@@ -238,6 +234,7 @@ object FormParameterBrowser: TFormParameterBrowser
     TabOrder = 4
   end
   object MainMenu: TMainMenu
+    Images = FormMDIMain.ImageList_20
     Left = 88
     Top = 104
     object MenuFile: TMenuItem
@@ -288,11 +285,12 @@ object FormParameterBrowser: TFormParameterBrowser
     end
   end
   object PopupMenuAdditionalParameters: TPopupMenu
+    Images = FormMDIMain.ImageList_20
     Left = 184
     Top = 104
   end
   object PopupMenu: TPopupMenu
-    Images = FormMDIMain.ImageList
+    Images = FormMDIMain.ImageList_20
     OnPopup = PopupMenuPopup
     Left = 216
     Top = 104
@@ -321,7 +319,7 @@ object FormParameterBrowser: TFormParameterBrowser
     end
   end
   object PopupMenuRunApp: TPopupMenu
-    Images = FormMDIMain.ImageList
+    Images = FormMDIMain.ImageList_20
     Left = 216
     Top = 136
     object PMItemRun: TMenuItem
@@ -330,7 +328,7 @@ object FormParameterBrowser: TFormParameterBrowser
     end
     object PMItemRunasadministrator: TMenuItem
       Caption = 'Run as administrator'
-      ImageIndex = 43
+      ImageIndex = 42
       OnClick = btnOKClick
     end
   end

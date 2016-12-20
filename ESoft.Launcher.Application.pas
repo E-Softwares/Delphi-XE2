@@ -1,453 +1,663 @@
 Unit ESoft.Launcher.Application;
 
-{----------------------------------------------------------}
-{Developed by Muhammad Ajmal p}
-{ajumalp@gmail.com}
-{----------------------------------------------------------}
+{ ---------------------------------------------------------- }
+{ Developed by Muhammad Ajmal p }
+{ ajumalp@gmail.com }
+{ ---------------------------------------------------------- }
 
 Interface
 
 Uses
-  Winapi.Windows,
-  System.Classes,
-  IniFiles,
-  System.SysUtils,
-  ShellApi,
+   Winapi.Windows,
+   System.Classes,
+   System.StrUtils,
+   System.Types,
+   IniFiles,
+   Vcl.Dialogs,
+   Vcl.Controls,
+   System.SysUtils,
+   ShellApi,
+   Vcl.Graphics,
 {$IFDEF AbbreviaZipper}
-  AbBase,
-  AbBrowse,
-  AbZBrows,
-  AbUnzper,
-  AbComCtrls,
+   AbBase,
+   AbBrowse,
+   AbZBrows,
+   AbUnzper,
+   AbComCtrls,
+   AbArcTyp,
 {$ELSE}
-  System.Zip,
+   System.Zip,
 {$ENDIF}
-  Generics.Collections,
-  ESoft.Utils;
+   Generics.Collections,
+   ESoft.Launcher.RecentItems,
+   ESoft.Utils;
+
+Const
+   cParameterNone = '<eNone>';
+   cInvalidBuildNumber = -1;
 
 Type
-  IEApplication = Interface
-    Function RunExecutable(aParameter: String = ''): Boolean;
-    Function UnZip: Boolean;
-  End;
+   eTAppFile = (eafName, eafFileName, eafExtension);
 
 Type
-  eTAppFile = (eafName, eafFileName, eafExtension);
+   TEApplicationGroup = Class;
 
-  TEApplicationGroup = Class;
+   TEApplication = Class(TPersistent, IEApplication)
+   Private
+      // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
+   Strict Private
+      // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
+      FOwner: TEApplicationGroup;
+      FFileName: String;
+      FVersionName: TStringDynArray;
 
-  TEApplication = Class(TPersistent, IEApplication)
-  Private
-    // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
-  Strict Private
-    // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
-    FOwner: TEApplicationGroup;
-    FFileName: String;
+      Function GetActualName: String;
+      Function GetFileName(aType: eTAppFile): String;
+      Procedure SetOwner(Const Value: TEApplicationGroup);
 
-    Function GetFileName(aType: eTAppFile): String;
-    Procedure SetOwner(Const Value: TEApplicationGroup);
+   Public
+      Constructor Create(Const aOwner: TEApplicationGroup);
 
-  Public
-    Constructor Create(Const aOwner: TEApplicationGroup);
+      Function QueryInterface(Const IID: TGUID; Out Obj): HRESULT; Stdcall;
+      Function _AddRef: Integer; Stdcall;
+      Function _Release: Integer; Stdcall;
 
-    Function QueryInterface(
-      Const IID: TGUID;
-      Out Obj): HRESULT; Stdcall;
-    Function _AddRef: Integer; Stdcall;
-    Function _Release: Integer; Stdcall;
+      Function TargetBranchPath: String;
+      Function TargetFolder: String;
+      Function RunExecutable(aParameter: String = ''): Boolean;
+      Function UnZip: Boolean;
 
-    Function RunExecutable(aParameter: String = ''): Boolean;
-    Function UnZip: Boolean;
+      Function VersionName: TStringDynArray;
+      Function MajorVersionName: String;
+      Function MinorVersionName: String;
+      Function ReleaseVersionName: String;
+      Function BuildNumber: Integer;
 
-  Published
-    Property Owner: TEApplicationGroup Read FOwner Write SetOwner;
-    Property Name: String Index eafName Read GetFileName;
-    Property Extension: String Index eafExtension Read GetFileName;
-    Property FileName: String Index eafFileName Read GetFileName Write FFileName;
-  End;
+   Published
+      Property Owner: TEApplicationGroup Read FOwner Write SetOwner;
+      Property Name: String Index eafName Read GetFileName;
+      Property Extension: String Index eafExtension Read GetFileName;
+      Property FileName: String Index eafFileName Read GetFileName Write FFileName;
+   End;
 
-  TEApplications = Class(TObjectList<TEApplication>);
+   TEApplications = Class(TObjectList<TEApplication>);
 
-  TEApplicationGroup = Class(TEApplications, IEApplication)
-  Private
-    // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
-  Strict Private
-    // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
-    FIsApplication: Boolean;
-    FFixedParameter, FExecutableName, FName: String;
-    FSourceFolder: String;
-    FDestFolder: String;
-    FFileMask: String;
-    FCreateFolder: Boolean;
+   TEApplicationGroup = Class(TEApplications, IEApplication)
+   Private
+      // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
+   Strict Private
+      // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
+      FIsApplication: Boolean;
+      FFixedParameter, FExecutableName, FName: String;
+      FSourceFolder: String;
+      FDestFolder: String;
+      FFileMask: String;
+      FDisplayLabel: String;
+      FCreateFolder, FCreateBranchFolder: Boolean;
+      FIcon: TIcon;
+      FIsMajorBranching, FIsMinorBranching, FIsReleaseBranching: Boolean;
+      FBranchingPrefix, FBranchingSufix: String;
+      FMainBranch, FCurrentBranch, FNoOfBuilds: Integer;
 
-    Procedure SetSourceFolder(Const Value: String);
-    Procedure SetDestFolder(Const Value: String);
-    Procedure SetFileMask(Const Value: String);
-    Function AddItem: TEApplication;
+      Function GetActualName: String;
+      Procedure SetSourceFolder(Const Value: String);
+      Procedure SetDestFolder(Const Value: String);
+      Procedure SetFileMask(Const Value: String);
+      Function AddItem: TEApplication;
+      Function InsertItem(Const aIndex: Integer): TEApplication;
+      Function GetIcon: TIcon;
+   Public
+      Constructor Create;
+      Destructor Destroy; Override;
 
-  Public
-    Constructor Create;
+      Function QueryInterface(Const IID: TGUID; Out Obj): HRESULT; Stdcall;
+      Function _AddRef: Integer; Stdcall;
+      Function _Release: Integer; Stdcall;
 
-    Function QueryInterface(
-      Const IID: TGUID;
-      Out Obj): HRESULT; Stdcall;
-    Function _AddRef: Integer; Stdcall;
-    Function _Release: Integer; Stdcall;
+      Function TargetFolder: String;
+      Function RunExecutable(aParameter: String = ''): Boolean;
+      Function UnZip: Boolean;
+      Procedure LoadApplications;
+      Procedure LoadData(Const aFileName: String);
+      Procedure SaveData(Const aFileName: String);
 
-    Function RunExecutable(aParameter: String = ''): Boolean;
-    Function UnZip: Boolean;
-    Procedure LoadApplications;
-    Procedure LoadData(Const aFileName: String);
-    Procedure SaveData(Const aFileName: String);
+      Function IsBranchingEnabled: Boolean;
 
-  Published
-    Property Name: String Read FName Write FName;
-    Property ExecutableName: String Read FExecutableName Write FExecutableName;
-    Property FileMask: String Read FFileMask Write SetFileMask;
-    Property DestFolder: String Read FDestFolder Write SetDestFolder;
-    Property SourceFolder: String Read FSourceFolder Write SetSourceFolder;
-    Property CreateFolder: Boolean Read FCreateFolder Write FCreateFolder;
-    Property FixedParameter: String Read FFixedParameter Write FFixedParameter;
-    Property IsApplication: Boolean Read FIsApplication Write FIsApplication;
-  End;
+   Published
+      Property Name: String Read FName Write FName;
+      Property ExecutableName: String Read FExecutableName Write FExecutableName;
+      Property FileMask: String Read FFileMask Write SetFileMask;
+      Property DestFolder: String Read FDestFolder Write SetDestFolder;
+      Property SourceFolder: String Read FSourceFolder Write SetSourceFolder;
+      Property CreateFolder: Boolean Read FCreateFolder Write FCreateFolder;
+      Property FixedParameter: String Read FFixedParameter Write FFixedParameter;
+      Property IsApplication: Boolean Read FIsApplication Write FIsApplication;
+      Property DisplayLabel: String Read FDisplayLabel Write FDisplayLabel;
+      Property Icon: TIcon Read GetIcon;
+      Property IsMajorBranching: Boolean Read FIsMajorBranching Write FIsMajorBranching;
+      Property IsMinorBranching: Boolean Read FIsMinorBranching Write FIsMinorBranching;
+      Property IsReleaseBranching: Boolean Read FIsReleaseBranching Write FIsReleaseBranching;
+      Property BranchingPrefix: String Read fBranchingPrefix Write FBranchingPrefix;
+      Property BranchingSufix: String Read FBranchingSufix Write FBranchingSufix;
+      Property NoOfBuilds: Integer Read FNoOfBuilds Write FNoOfBuilds;
+      Property MainBranch: Integer Read FMainBranch Write FMainBranch;
+      Property CurrentBranch: Integer Read FCurrentBranch Write FCurrentBranch;
+      Property CreateBranchFolder: Boolean Read FCreateBranchFolder Write FCreateBranchFolder;
+   End;
 
 Type
-  TEApplicationGroups = Class(TObjectDictionary<String, TEApplicationGroup>)
-  Private
-    // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
-  Strict Private
-    // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
-    FIsLoaded: Boolean;
+   TEApplicationGroups = Class(TObjectDictionary<String, TEApplicationGroup>)
+   Private
+      // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
+   Strict Private
+      // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
+      FIsLoaded: Boolean;
 
-  Public
-    Constructor Create;
+   Public
+      Constructor Create;
 
-    Procedure LoadData(Const aFileName: String);
-    Procedure SaveData(Const aFileName: String);
-    Function AddItem(Const aName: String = ''): TEApplicationGroup;
-  End;
+      Procedure LoadData(Const aFileName: String);
+      Procedure SaveData(Const aFileName: String);
+      Function AddItem(Const aName: String = ''): TEApplicationGroup;
+   End;
 
 Implementation
 
-{TEApplicationGroup}
+{ TEApplicationGroup }
 
 Uses
-  UnitMDIMain,
-  ESoft.Launcher.UI.ParamBrowser;
+   UnitMDIMain,
+   ESoft.Launcher.UI.ParamBrowser;
 
 Const
-  cGroupFixedParam = 'Fixed_Param';
-  cGroupExeName = 'Executable_Name';
-  cGroupFileMask = 'File_Mask';
-  cGroupSourceFolder = 'Source_Folder';
-  cGroupDestFolder = 'Target_Folder';
-  cGroupCreateFolder = 'Create_Folder';
-  cGroupIsApp = 'Is_Application';
+   cBRANCH_MAJOR_VERSION = 0;
+   cBRANCH_MINOR_VERSION = 1;
+   cBRANCH_RELEASE_VERSION = 2;
+   cBRANCH_BUILD_VERSION = 3;
+   cBRANCH_VERSION_SEPERATOR = '.';
+
+   cGroupFixedParam = 'Fixed_Param';
+   cGroupExeName = 'Executable_Name';
+   cGroupFileMask = 'File_Mask';
+   cGroupSourceFolder = 'Source_Folder';
+   cGroupDestFolder = 'Target_Folder';
+   cGroupCreateFolder = 'Create_Folder';
+   cGroupIsApp = 'Is_Application';
+   cGroupLabel = 'Display_Label';
+   cGroupIsMajorBranching = 'Is_MajorBranching';
+   cGroupIsMinorBranching = 'Is_MinorBranching';
+   cGroupIsReleaseBranching = 'Is_ReleaseBranching';
+   cGroupBranchingPrefix = 'BranchingPrefix';
+   cGroupBranchingSufix = 'BranchingSufix';
+   cGroupBranchingMainBranch = 'BranchingMainBranch';
+   cGroupBranchingNoOfBuilds = 'BranchingNoOfBuilds';
+   cGroupBranchingCurrentBranch = 'BranchingCurrentBranch';
+   cGroupBranchingCreateFolder = 'BranchingCreateFolder';
 
 Function TEApplicationGroup.AddItem: TEApplication;
 Begin
-  Result := TEApplication.Create(Self);
-  Add(Result);
+   Result := TEApplication.Create(Self);
+   Add(Result);
 End;
 
 Constructor TEApplicationGroup.Create;
 Begin
-  Inherited Create(True);
+   Inherited Create(True);
 
-  FCreateFolder := True;
-  FSourceFolder := '';
-  FDestFolder := '';
+   FCreateFolder := True;
+   FSourceFolder := '';
+   FDestFolder := '';
+End;
+
+Destructor TEApplicationGroup.Destroy;
+Begin
+   EFreeAndNil(FIcon);
+
+   Inherited;
+End;
+
+Function TEApplicationGroup.InsertItem(Const aIndex: Integer): TEApplication;
+Begin
+   Result := TEApplication.Create(Self);
+   Insert(aIndex, Result);
+End;
+
+Function TEApplicationGroup.IsBranchingEnabled: Boolean;
+Begin
+   Result := IsMajorBranching Or IsMinorBranching Or IsReleaseBranching;
+End;
+
+Function TEApplicationGroup.GetActualName: String;
+Begin
+   Result := Name;
+End;
+
+Function TEApplicationGroup.GetIcon: TIcon;
+Var
+   sFileName: String;
+Begin
+   Result := Nil;
+
+   If IsApplication Then
+      sFileName := SourceFolder + ExecutableName
+   Else
+      sFileName := DestFolder + ExecutableName;
+
+   EFreeAndNil(FIcon);
+   if not FileExists(sFileName) then
+    Exit;
+
+   FIcon := TIcon.Create;
+   Try
+      FetchIcon(sFileName, FIcon);
+      Result := FIcon;
+   Except
+      // Do nothing, it's not mandatory to have icon { Ajmal }
+   End;
 End;
 
 Procedure TEApplicationGroup.LoadApplications;
 Var
-  varSearch: TSearchRec;
+   varSearch: TSearchRec;
 Begin
-  Clear;
-  If SourceFolder <> '' Then
-  Begin
-    If FindFirst(SourceFolder + FileMask, faArchive, varSearch) = 0 Then
-    Begin
-      Repeat
-        AddItem.FileName := varSearch.Name;
-      Until FindNext(varSearch) <> 0;
-      FindClose(varSearch);
-    End;
-  End;
+   Clear;
+   If SourceFolder <> '' Then
+   Begin
+      If FindFirst(SourceFolder + FileMask, faArchive, varSearch) = 0 Then
+      Begin
+         Repeat
+            InsertItem(0).FileName := varSearch.Name;
+         Until FindNext(varSearch) <> 0;
+         FindClose(varSearch);
+      End;
+   End;
 End;
 
 Procedure TEApplicationGroup.LoadData(Const aFileName: String);
 Var
-  varIniFile: TIniFile;
+   varIniFile: TIniFile;
 Begin
-  varIniFile := TIniFile.Create(aFileName);
-  Try
-    FixedParameter := varIniFile.ReadString(Name, cGroupFixedParam, '');
-    ExecutableName := varIniFile.ReadString(Name, cGroupExeName, '');
-    FileMask := varIniFile.ReadString(Name, cGroupFileMask, '');
-    SourceFolder := varIniFile.ReadString(Name, cGroupSourceFolder, '');
-    DestFolder := varIniFile.ReadString(Name, cGroupDestFolder, '');
-    CreateFolder := varIniFile.ReadBool(Name, cGroupCreateFolder, True);
-    IsApplication := varIniFile.ReadBool(Name, cGroupIsApp, False);
-  Finally
-    varIniFile.Free;
-  End;
+   varIniFile := TIniFile.Create(aFileName);
+   Try
+      FixedParameter := varIniFile.ReadString(Name, cGroupFixedParam, '');
+      ExecutableName := varIniFile.ReadString(Name, cGroupExeName, '');
+      FileMask := varIniFile.ReadString(Name, cGroupFileMask, '');
+      SourceFolder := varIniFile.ReadString(Name, cGroupSourceFolder, '');
+      DestFolder := varIniFile.ReadString(Name, cGroupDestFolder, '');
+      CreateFolder := varIniFile.ReadBool(Name, cGroupCreateFolder, True);
+      IsApplication := varIniFile.ReadBool(Name, cGroupIsApp, False);
+      DisplayLabel := varIniFile.ReadString(Name, cGroupLabel, '');
+      IsMajorBranching := varIniFile.ReadBool(Name, cGroupIsMajorBranching, False);
+      IsMinorBranching := varIniFile.ReadBool(Name, cGroupIsMinorBranching, False);
+      IsReleaseBranching := varIniFile.ReadBool(Name, cGroupIsReleaseBranching, False);
+      BranchingPrefix := varIniFile.ReadString(Name, cGroupBranchingPrefix, '');
+      BranchingSufix := varIniFile.ReadString(Name, cGroupBranchingSufix, '');
+      MainBranch := varIniFile.ReadInteger(Name, cGroupBranchingMainBranch, 0);
+      NoOfBuilds := varIniFile.ReadInteger(Name, cGroupBranchingNoOfBuilds, 0);
+      CurrentBranch := varIniFile.ReadInteger(Name, cGroupBranchingCurrentBranch, 0);
+      CreateBranchFolder := varIniFile.ReadBool(Name, cGroupBranchingCreateFolder, False);
+   Finally
+      varIniFile.Free;
+   End;
 End;
 
-Function TEApplicationGroup.QueryInterface(
-  Const IID: TGUID;
-  Out Obj): HRESULT;
+Function TEApplicationGroup.QueryInterface(Const IID: TGUID; Out Obj): HRESULT;
 Begin
-  Inherited;
+   Inherited;
 End;
 
-Function TEApplicationGroup.RunExecutable(aParameter: String = ''): Boolean;
+Function TEApplicationGroup.RunExecutable(aParameter: String): Boolean;
 Begin
-  If Not IsApplication Then
-    Raise Exception.Create('Execution failed. Group is not created as application.');
+   If Not IsApplication Then
+      Raise Exception.Create('Execution failed. Group is not created as application.');
 
-  aParameter := aParameter + ' ' + FixedParameter;
-  Try
-    If FormMDIMain.RunAsAdmin Then
-      RunAsAdmin(FormMDIMain.Handle, PWideChar(ExecutableName), PWideChar(aParameter), PWideChar(SourceFolder))
-    Else
-      ShellExecute(FormMDIMain.Handle, 'open', PWideChar(ExecutableName), PWideChar(aParameter), PWideChar(SourceFolder), SW_SHOWNORMAL);
-  Except
-    // Do nothing. It's not easily possible to handle all the issues related to shell execute. { Ajmal }
-  End;
+   If FixedParameter <> cParameterNone Then
+      aParameter := aParameter + ' ' + FixedParameter;
+
+   FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder);
 End;
 
 Procedure TEApplicationGroup.SaveData(Const aFileName: String);
 Var
-  varIniFile: TIniFile;
+   varIniFile: TIniFile;
 Begin
-  varIniFile := TIniFile.Create(aFileName);
-  Try
-    varIniFile.WriteString(Name, cGroupFixedParam, FixedParameter);
-    varIniFile.WriteString(Name, cGroupExeName, ExecutableName);
-    varIniFile.WriteString(Name, cGroupFileMask, FileMask);
-    varIniFile.WriteString(Name, cGroupSourceFolder, SourceFolder);
-    varIniFile.WriteString(Name, cGroupDestFolder, DestFolder);
-    varIniFile.WriteBool(Name, cGroupCreateFolder, CreateFolder);
-    varIniFile.WriteBool(Name, cGroupIsApp, IsApplication);
-  Finally
-    varIniFile.Free;
-  End;
+   varIniFile := TIniFile.Create(aFileName);
+   Try
+      varIniFile.WriteString(Name, cGroupFixedParam, FixedParameter);
+      varIniFile.WriteString(Name, cGroupExeName, ExecutableName);
+      varIniFile.WriteString(Name, cGroupFileMask, FileMask);
+      varIniFile.WriteString(Name, cGroupSourceFolder, SourceFolder);
+      varIniFile.WriteString(Name, cGroupDestFolder, DestFolder);
+      varIniFile.WriteBool(Name, cGroupCreateFolder, CreateFolder);
+      varIniFile.WriteBool(Name, cGroupIsApp, IsApplication);
+      varIniFile.WriteString(Name, cGroupLabel, DisplayLabel);
+      varIniFile.WriteBool(Name, cGroupIsMajorBranching, IsMajorBranching);
+      varIniFile.WriteBool(Name, cGroupIsMinorBranching, IsMinorBranching);
+      varIniFile.WriteBool(Name, cGroupIsReleaseBranching, IsReleaseBranching);
+      varIniFile.WriteString(Name, cGroupBranchingPrefix, BranchingPrefix);
+      varIniFile.WriteString(Name, cGroupBranchingSufix, BranchingSufix);
+      varIniFile.WriteInteger(Name, cGroupBranchingMainBranch, MainBranch);
+      varIniFile.WriteInteger(Name, cGroupBranchingNoOfBuilds, NoOfBuilds);
+      varIniFile.WriteInteger(Name, cGroupBranchingCurrentBranch, CurrentBranch);
+      varIniFile.WriteBool(Name, cGroupBranchingCreateFolder, CreateBranchFolder);
+   Finally
+      varIniFile.Free;
+   End;
 End;
 
 Procedure TEApplicationGroup.SetDestFolder(Const Value: String);
 Var
-  iLen: Integer;
+   iLen: Integer;
 Begin
-  iLen := Length(Value);
-  If (iLen > 0) And (Value[iLen] <> '\') Then
-    FDestFolder := Value + '\'
-  Else
-    FDestFolder := Value;
+   iLen := Length(Value);
+   If (iLen > 0) And (Value[iLen] <> '\') Then
+      FDestFolder := Value + '\'
+   Else
+      FDestFolder := Value;
 End;
 
 Procedure TEApplicationGroup.SetFileMask(Const Value: String);
 Begin
-  FFileMask := Value;
+   FFileMask := Value;
 End;
 
 Procedure TEApplicationGroup.SetSourceFolder(Const Value: String);
 Var
-  iLen: Integer;
+   iLen: Integer;
 Begin
-  iLen := Length(Value);
-  If (iLen > 0) And (Value[iLen] <> '\') Then
-    FSourceFolder := Value + '\'
-  Else
-    FSourceFolder := Value;
+   iLen := Length(Value);
+   If (iLen > 0) And (Value[iLen] <> '\') Then
+      FSourceFolder := Value + '\'
+   Else
+      FSourceFolder := Value;
+End;
+
+Function TEApplicationGroup.TargetFolder: String;
+Begin
+   If CreateFolder Then
+      Result := DestFolder // + Copy(ExecutableName, 1, Length(FFileName) - Length(ExtractFileExt(FFileName)))
+   Else
+      Result := DestFolder;
 End;
 
 Function TEApplicationGroup.UnZip: Boolean;
 Begin
-  // Nothing to do. { Ajmal }
+   // Nothing to do. { Ajmal }
 End;
 
 Function TEApplicationGroup._AddRef: Integer;
 Begin
-  Inherited;
+   Inherited;
 End;
 
 Function TEApplicationGroup._Release: Integer;
 Begin
-  Inherited;
+   Inherited;
 End;
 
-{TEApplicationGroups}
+{ TEApplicationGroups }
 
 Function TEApplicationGroups.AddItem(Const aName: String): TEApplicationGroup;
 Begin
-  If ContainsKey(aName) Then
-    Raise Exception.Create('Group with same name already exist');
+   If ContainsKey(aName) Then
+      Raise Exception.Create('Group with same name already exist');
 
-  Result := TEApplicationGroup.Create;
-  Result.Name := aName;
-  Add(aName, Result);
+   Result := TEApplicationGroup.Create;
+   Result.Name := aName;
+   Add(aName, Result);
 End;
 
 Constructor TEApplicationGroups.Create;
 Begin
-  Inherited Create([doOwnsValues]);
+   Inherited Create([doOwnsValues]);
 
-  FIsLoaded := False;
+   FIsLoaded := False;
 End;
 
 Procedure TEApplicationGroups.LoadData(Const aFileName: String);
 Var
-  varIniFile: TIniFile;
-  varList: TStringList;
-  iCntr: Integer;
-  sCurrName: String;
-  varCurrAppGrp: TEApplicationGroup;
+   varIniFile: TIniFile;
+   varList: TStringList;
+   iCntr: Integer;
+   sCurrName: String;
+   varCurrAppGrp: TEApplicationGroup;
 Begin
-  varIniFile := TIniFile.Create(aFileName);
-  varList := TStringList.Create;
-  varList.Duplicates := dupIgnore;
-  varList.Sorted := True;
-  Try
-    Try
-      varIniFile.ReadSections(varList);
-    Finally
-      varIniFile.Free;
-    End;
-    For iCntr := 0 To Pred(varList.Count) Do
-    Begin
-      sCurrName := varList[iCntr];
-      If sCurrName = '' Then
-        Continue;
+   varIniFile := TIniFile.Create(aFileName);
+   varList := TStringList.Create;
+   varList.Duplicates := dupIgnore;
+   varList.Sorted := True;
+   Try
+      Try
+         varIniFile.ReadSections(varList);
+      Finally
+         varIniFile.Free;
+      End;
+      For iCntr := 0 To Pred(varList.Count) Do
+      Begin
+         sCurrName := varList[iCntr];
+         If sCurrName = '' Then
+            Continue;
 
-      varCurrAppGrp := AddItem(sCurrName);
-      If Not Assigned(varCurrAppGrp) Then
-        Continue; // A group with same name already exist. { Ajmal }
+         varCurrAppGrp := AddItem(sCurrName);
+         If Not Assigned(varCurrAppGrp) Then
+            Continue; // A group with same name already exist. { Ajmal }
 
-      varCurrAppGrp.LoadData(aFileName);
-    End;
-    FIsLoaded := True;
-  Finally
-    varList.Free;
-  End;
+         varCurrAppGrp.LoadData(aFileName);
+      End;
+      FIsLoaded := True;
+   Finally
+      varList.Free;
+   End;
 End;
 
 Procedure TEApplicationGroups.SaveData(Const aFileName: String);
 Var
-  varCurrAppGrp: TEApplicationGroup;
+   varCurrAppGrp: TEApplicationGroup;
 Begin
-  If Not FIsLoaded Then
-    Exit; // Don't save if it's not loaded. { Ajmal }
+   If Not FIsLoaded Then
+      Exit; // Don't save if it's not loaded. { Ajmal }
 
-  DeleteFile(aFileName);
-  For varCurrAppGrp In Values Do
-    varCurrAppGrp.SaveData(aFileName);
+   DeleteFile(aFileName);
+   For varCurrAppGrp In Values Do
+      varCurrAppGrp.SaveData(aFileName);
 End;
 
-{TEApplication}
+{ TEApplication }
+
+Function TEApplication.BuildNumber: Integer;
+Begin
+   If Not Owner.IsBranchingEnabled Then
+      Exit(cInvalidBuildNumber);
+
+   Try
+      Result := StrToInt(Trim(VersionName[cBRANCH_BUILD_VERSION]));
+   Except
+      Result := cInvalidBuildNumber;
+   End;
+End;
 
 Constructor TEApplication.Create(Const aOwner: TEApplicationGroup);
 Begin
-  Assert(aOwner <> Nil, 'Owner cannot be nil');
-  Owner := aOwner;
+   Assert(aOwner <> Nil, 'Owner cannot be nil');
+   Owner := aOwner;
+   SetLength(FVersionName, 0);
+End;
+
+Function TEApplication.GetActualName: String;
+Begin
+   Result := Name;
 End;
 
 Function TEApplication.GetFileName(aType: eTAppFile): String;
 Begin
-  Case aType Of
-    eafName:
-      Result := Copy(FFileName, 1, Length(FFileName) - Length(ExtractFileExt(FFileName)));
-    eafFileName:
-      Result := FFileName;
-    eafExtension:
-      Result := ExtractFileExt(FFileName);
-  End;
+   Case aType Of
+      eafName:
+         Result := Copy(FFileName, 1, Length(FFileName) - Length(ExtractFileExt(FFileName)));
+      eafFileName:
+         Result := FFileName;
+      eafExtension:
+         Result := ExtractFileExt(FFileName);
+   End;
 End;
 
-Function TEApplication.QueryInterface(
-  Const IID: TGUID;
-  Out Obj): HRESULT;
+Function TEApplication.MajorVersionName: String;
 Begin
-  Inherited;
+   If Not Owner.IsMajorBranching Then
+      Exit('');
+
+   Try
+      Result := 'Version ' + Trim(VersionName[cBRANCH_MAJOR_VERSION]);
+   Except
+      Result := '';
+   End;
+End;
+
+Function TEApplication.MinorVersionName: String;
+Begin
+   If Not Owner.IsMinorBranching Then
+      Exit('');
+
+   Try
+      Result := Format('Version %s.%s', [Trim(VersionName[cBRANCH_MAJOR_VERSION]), Trim(VersionName[cBRANCH_MINOR_VERSION])]);
+   Except
+      Result := '';
+   End;
+End;
+
+Function TEApplication.QueryInterface(Const IID: TGUID; Out Obj): HRESULT;
+Begin
+   Inherited;
+End;
+
+Function TEApplication.ReleaseVersionName: String;
+Var
+   sRelease: String;
+Begin
+   If Not Owner.IsReleaseBranching Then
+      Exit('');
+
+   Try
+      sRelease := Trim(VersionName[cBRANCH_RELEASE_VERSION]);
+      If SameStr(sRelease, IntToStr(Owner.MainBranch)) Then
+         Result := 'Main Release'
+      Else If SameStr(sRelease, IntToStr(Owner.CurrentBranch)) Then
+         Result := 'Current Release'
+      Else
+         Result := 'Release ' + sRelease;
+   Except
+      Result := '';
+   End;
 End;
 
 Function TEApplication.RunExecutable(aParameter: String): Boolean;
-Var
-  sDestFolder: String;
 Begin
-  aParameter := Owner.FixedParameter + ' ' + aParameter;
-  If Owner.CreateFolder Then
-    sDestFolder := Owner.DestFolder + Name
-  Else
-    sDestFolder := Owner.DestFolder;
-  Try
-    If FormMDIMain.RunAsAdmin Then
-      RunAsAdmin(FormMDIMain.Handle, PWideChar(Owner.ExecutableName), PWideChar(aParameter), PWideChar(sDestFolder))
-    Else
-      ShellExecute(FormMDIMain.Handle, 'open', PWideChar(Owner.ExecutableName), PWideChar(aParameter), PWideChar(sDestFolder), SW_SHOWNORMAL);
-  Except
-    // Do nothing. It's not easily possible to handle all the issues related to shell execute. { Ajmal }
-  End;
+   If Owner.FixedParameter <> cParameterNone Then
+      aParameter := aParameter + ' ' + Owner.FixedParameter;
+
+   FormMDIMain.RunApplication(Name, Owner.ExecutableName, aParameter, TargetFolder);
 End;
 
 Procedure TEApplication.SetOwner(Const Value: TEApplicationGroup);
 Begin
-  FOwner := Value;
+   FOwner := Value;
+End;
+
+Function TEApplication.TargetBranchPath: String;
+Begin
+   Result := '';
+   If Not Owner.CreateBranchFolder Then
+      Exit;
+
+   If Owner.IsMajorBranching Then
+      Result := IncludeTrailingBackslash(MajorVersionName + '.x');
+
+   If Owner.IsMinorBranching Then
+      Result := Result + IncludeTrailingBackslash(MinorVersionName);
+
+   If Owner.IsReleaseBranching Then
+      Result := Result + IncludeTrailingBackslash(ReleaseVersionName);
+End;
+
+Function TEApplication.TargetFolder: String;
+Begin
+   If Owner.CreateFolder Then
+      Result := IncludeTrailingBackslash(Owner.DestFolder) + TargetBranchPath + Name
+   Else
+      Result := Owner.DestFolder;
 End;
 
 Function TEApplication.UnZip: Boolean;
 Var
-  sDestFolder: String;
-  varZipObj: TObject;
+   varZipObj: TObject;
 {$IFDEF AbbreviaZipper}
-  varUnAbZipper: TAbUnZipper Absolute varZipObj;
+   varUnAbZipper: TAbUnZipper Absolute varZipObj;
 Begin
-  varZipObj := TAbUnZipper.Create(Nil);
-  If Assigned(FormParameterBrowser) Then
-  Begin
-    varUnAbZipper.ArchiveProgressMeter := TAbProgressBar(FormParameterBrowser.ZipProgressBarArchive);
-    varUnAbZipper.ItemProgressMeter := TAbProgressBar(FormParameterBrowser.ZipProgressBarItem);
-  End;
+   varZipObj := TAbUnZipper.Create(Nil);
+   If Assigned(FormParameterBrowser) Then
+   Begin
+      varUnAbZipper.ArchiveProgressMeter := TAbProgressBar(FormParameterBrowser.ZipProgressBarArchive);
+      varUnAbZipper.ItemProgressMeter := TAbProgressBar(FormParameterBrowser.ZipProgressBarItem);
+   End;
 {$ELSE}
-  varZipFile: TZipFile Absolute varZipObj;
+   varZipFile: TZipFile Absolute varZipObj;
 Begin
-  varZipObj := TZipFile.Create;
+   varZipObj := TZipFile.Create;
 {$ENDIF}
-  Result := False;
-  Try
-    If Not SameText(Extension, '.zip') Then
-      Exit(False); // This will go to finally before function exit. So objected ll be freed. { Ajmal }
+   Result := False;
+   Try
+      If Not SameText(Extension, '.zip') Then
+         Exit(False); // This will go to finally before function exit. So objected ll be freed. { Ajmal }
 
-    If Owner.CreateFolder Then
-    Begin
-      sDestFolder := Owner.DestFolder + Name;
-      If DirectoryExists(sDestFolder) Then
-        Exit;
-      ForceDirectories(sDestFolder);
-    End
-    Else
-      sDestFolder := Owner.DestFolder;
+      If DirectoryExists(TargetFolder) Then
+         Exit;
+      ForceDirectories(TargetFolder);
 {$IFDEF AbbreviaZipper}
-    varUnAbZipper.FileName := Owner.SourceFolder + FileName;
-    varUnAbZipper.BaseDirectory := sDestFolder;
-    varUnAbZipper.ExtractFiles('*.*');
+      varUnAbZipper.FileName := Owner.SourceFolder + FileName;
+      varUnAbZipper.BaseDirectory := TargetFolder;
+      varUnAbZipper.ExtractOptions := [eoCreateDirs, eoRestorePath];
+      varUnAbZipper.ExtractFiles('*.*');
 {$ELSE}
-    varZipFile.ExtractZipFile(Owner.SourceFolder + FileName, sDestFolder);
+      varZipFile.ExtractZipFile(Owner.SourceFolder + FileName, sDestFolder);
 {$ENDIF}
-    Result := True;
-  Finally
-    varZipObj.Free;
-  End;
+      Result := True;
+   Finally
+      varZipObj.Free;
+   End;
+End;
+
+Function TEApplication.VersionName: TStringDynArray;
+Var
+   sVersion: String;
+Begin
+   If Not Owner.IsBranchingEnabled Then
+   Begin
+      SetLength(FVersionName, 0);
+      Exit(FVersionName);
+   End;
+
+   // Check we already loaded the version name { Ajmal }
+   If Length(FVersionName) <> 0 Then
+      Exit(FVersionName);
+
+   sVersion := Name;
+
+   If (Owner.BranchingPrefix <> '') And StrStartsWith(Name, Owner.BranchingPrefix, False) Then
+      sVersion := StringReplace(sVersion, Owner.BranchingPrefix, '', [rfIgnoreCase]);
+
+   If (Owner.BranchingSufix <> '') And StrEndsWith(Name, Owner.BranchingSufix) Then
+      sVersion := StrSubString(Length(Owner.BranchingSufix), sVersion);
+
+   Result:= SplitString(sVersion, cBRANCH_VERSION_SEPERATOR);
 End;
 
 Function TEApplication._AddRef: Integer;
 Begin
-  Inherited;
+   Inherited;
 End;
 
 Function TEApplication._Release: Integer;
 Begin
-  Inherited;
+   Inherited;
 End;
 
 End.
