@@ -21,7 +21,7 @@ Uses
    Datasnap.DBClient,
    ESoft.Utils,
    ESoft.Launcher.Clipboard,
-   Vcl.Menus;
+   Vcl.Menus, Vcl.ImgList, Vcl.ActnList, Vcl.StdActns;
 
 Type
    TFormClipboardBrowser = Class(TForm)
@@ -51,6 +51,20 @@ Type
       MItemDelete: TMenuItem;
       MItemRename: TMenuItem;
       MItemSave: TMenuItem;
+    MItemEdit: TMenuItem;
+    MItemCopy: TMenuItem;
+    MItemCut: TMenuItem;
+    aclNotes: TActionList;
+    imlNotes: TImageList;
+    actEditCut: TEditCut;
+    actEditCopy: TEditCopy;
+    actEditPaste: TEditPaste;
+    actEditSelectAll: TEditSelectAll;
+    actEditUndo: TEditUndo;
+    actEditDelete: TEditDelete;
+    Paste1: TMenuItem;
+    SelectAll1: TMenuItem;
+    N2: TMenuItem;
       Procedure edtFilterChange(Sender: TObject);
       Procedure edtFilterKeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
       Procedure MItemCloseClick(Sender: TObject);
@@ -64,6 +78,11 @@ Type
       Procedure PMItemRenameClick(Sender: TObject);
       Procedure PopupMenuPopup(Sender: TObject);
     procedure DBMemoDataExit(Sender: TObject);
+    procedure actEditCutExecute(Sender: TObject);
+    procedure actEditCopyExecute(Sender: TObject);
+    procedure actEditPasteExecute(Sender: TObject);
+    procedure actEditSelectAllExecute(Sender: TObject);
+    procedure actEditUndoExecute(Sender: TObject);
    Strict Private
       { Private declarations }
       Function ClipboardItems: TEClipboardItems;
@@ -86,6 +105,31 @@ Uses
    UnitMDIMain;
 { TFormClipboardBrowser }
 
+procedure TFormClipboardBrowser.actEditCopyExecute(Sender: TObject);
+begin
+   DBMemoData.CopyToClipboard;
+end;
+
+procedure TFormClipboardBrowser.actEditCutExecute(Sender: TObject);
+begin
+   DBMemoData.CutToClipboard;
+end;
+
+procedure TFormClipboardBrowser.actEditPasteExecute(Sender: TObject);
+begin
+   DBMemoData.PasteFromClipboard;
+end;
+
+procedure TFormClipboardBrowser.actEditSelectAllExecute(Sender: TObject);
+begin
+   DBMemoData.SelectAll;
+end;
+
+procedure TFormClipboardBrowser.actEditUndoExecute(Sender: TObject);
+begin
+   DBMemoData.Undo;
+end;
+
 Procedure TFormClipboardBrowser.btnCancelClick(Sender: TObject);
 Begin
    // If it's canceled, reload the items { Ajmal }
@@ -100,6 +144,7 @@ End;
 Procedure TFormClipboardBrowser.chkSearchInDataClick(Sender: TObject);
 Begin
    PMItemSearchInData.Checked := chkSearchInData.Checked;
+   edtFilterChange(edtFilter);
 End;
 
 Function TFormClipboardBrowser.SelectedClpBrdItem: TEClipboardItem;
@@ -146,7 +191,7 @@ Begin
          If (TempFieldArray[iCnt] = 'ClpBrdData') And Not chkSearchInData.Checked Then
             Continue;
 
-         Filter := IfThen((Trim(Filter) = '') And (Not StrEndsWith(Filter, 'Or ')), Filter + ' Or ', Filter);
+         Filter := IfThen((Trim(Filter) <> '') And (Not StrEndsWith(Filter, 'Or ')), Filter + ' Or ', Filter);
          Filter := Filter + TempSearchArray[iCnt];
       End;
       If StrEndsWith(Filter, 'Or ') Then

@@ -1163,8 +1163,6 @@ Begin
                iCurrGrpImageIndex := imlAppIcons.AddIcon(varIcon);
                imlAppIcons.GetBitmap(iCurrGrpImageIndex, varCurrMenuGroup.Bitmap);
                varCurrMenuGroup.ImageIndex := cIMG_NONE;
-               varCurrNode.ImageIndex := iCurrGrpImageIndex;
-               varCurrNode.SelectedIndex := iCurrGrpImageIndex;
             End;
             Continue;
          End;
@@ -1173,11 +1171,11 @@ Begin
          varCurrMenuGroup.Enabled := varAppGrp.Count > 0;
          For varApp In varAppGrp Do
          Begin
-            With tvApplications.Items.AddChildObject(varCurrNode, varApp.Name, varApp) Do
+            {With tvApplications.Items.AddChildObject(varCurrNode, varApp.Name, varApp) Do
             Begin
                ImageIndex := cIMG_NONE;
                SelectedIndex := cIMG_NONE;
-            End;
+            End;}
 
             varBranchMenuItem := _ApplicationBranch(varApp, varCurrMenuGroup);
             varCurrMenuItem := TMenuItem.Create(varBranchMenuItem);

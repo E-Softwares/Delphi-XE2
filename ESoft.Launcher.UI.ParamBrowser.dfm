@@ -7,7 +7,7 @@ object FormParameterBrowser: TFormParameterBrowser
   ClientHeight = 352
   ClientWidth = 694
   Color = 14871789
-  Constraints.MaxHeight = 400
+  Constraints.MaxHeight = 401
   Constraints.MaxWidth = 700
   Constraints.MinHeight = 400
   Constraints.MinWidth = 700
@@ -16,7 +16,6 @@ object FormParameterBrowser: TFormParameterBrowser
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  FormStyle = fsStayOnTop
   Menu = MainMenu
   OldCreateOrder = False
   Position = poScreenCenter
@@ -38,7 +37,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 10
       Top = 5
       Width = 37
-      Height = 15
+      Height = 31
       Margins.Left = 8
       Align = alLeft
       Caption = 'Search'
@@ -102,7 +101,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 5
       Top = 5
       Width = 106
-      Height = 15
+      Height = 31
       Align = alLeft
       Caption = 'Selected Parameter '
       Font.Charset = ANSI_CHARSET
@@ -116,8 +115,8 @@ object FormParameterBrowser: TFormParameterBrowser
     object lblParameter: TLabel
       AlignWithMargins = True
       Left = 5
-      Top = 36
-      Width = 3
+      Top = 39
+      Width = 678
       Height = 13
       Align = alBottom
       Layout = tlCenter
@@ -127,7 +126,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 603
       Top = 5
       Width = 75
-      Height = 25
+      Height = 28
       Margins.Right = 8
       Align = alRight
       Caption = 'Cancel'
@@ -140,7 +139,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 517
       Top = 5
       Width = 75
-      Height = 25
+      Height = 28
       Margins.Right = 8
       Align = alRight
       Caption = '  Ok'
@@ -156,7 +155,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 117
       Top = 7
       Width = 384
-      Height = 21
+      Height = 24
       Margins.Top = 5
       Margins.Right = 13
       Margins.Bottom = 5
