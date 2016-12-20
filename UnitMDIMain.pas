@@ -238,12 +238,12 @@ Const
    cGroupVisible_ApplicationOnly = 2;
    cGroupVisible_CategoryOnly = 3;
 
-   cAppZipFileNamesInSite: Array [0..4] of String = (
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.zip',
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z01',
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z02',
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z03',
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z04'
+   cAppZipFileNamesInSite: Array [0..4] of String = ( //
+      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.zip', //
+      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z01', //
+      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z02', //
+      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z03', //
+      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z04' //
    );
    cUniqueAppVersionCode = cESoftLauncher;
 
@@ -1171,12 +1171,6 @@ Begin
          varCurrMenuGroup.Enabled := varAppGrp.Count > 0;
          For varApp In varAppGrp Do
          Begin
-            {With tvApplications.Items.AddChildObject(varCurrNode, varApp.Name, varApp) Do
-            Begin
-               ImageIndex := cIMG_NONE;
-               SelectedIndex := cIMG_NONE;
-            End;}
-
             varBranchMenuItem := _ApplicationBranch(varApp, varCurrMenuGroup);
             varCurrMenuItem := TMenuItem.Create(varBranchMenuItem);
             varCurrMenuItem.Caption := varApp.Name;
