@@ -186,6 +186,8 @@ Type
       Procedure ClearRecentItems(aSender: TObject);
       Function AppSeparatorMenuIndex(Const aType: Integer): Integer;
       Function GetClipboardItems: TEClipboardItems;
+  protected
+    procedure WMClipboardupdate(var aMessage: TMessage); message WM_CLIPBOARDUPDATE;
    Public
       { Public declarations }
       Procedure LoadConfig;
@@ -193,7 +195,7 @@ Type
       Function BackupFolder: String;
       Procedure UpdateApplicationList;
       Procedure ReloadFromIni;
-      Procedure RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String);
+      Procedure RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String; aSkipFromRecent: Boolean);
 
       Property RecentItems: TERecentItems Read GetRecentItems;
    Published
@@ -345,10 +347,12 @@ Begin
    RegisterAppHotKey;
 
    edtConnection.Text := Connections.FileName;
+   // AddClipboardFormatListener(Handle);
 End;
 
 Procedure TFormMDIMain.FormDestroy(Sender: TObject);
 Begin
+   // RemoveClipboardFormatListener(Handle);
    UnRegisterHotKey(Handle, FHotKeyMain);
    GlobalDeleteAtom(FHotKeyMain);
    ClipboardItems.Save;
@@ -1199,13 +1203,22 @@ Begin
    End;
 End;
 
+procedure TFormMDIMain.WMClipboardupdate(var aMessage: TMessage);
+begin
+   if Trim(Clipboard.AsText) = '' then
+      Exit;
+
+   ClipboardItems.AddItem(DateTimeToStr(Now)).LoadFromClipboard;
+   ClipboardItems.Save;
+end;
+
 Procedure TFormMDIMain.WMHotKey(Var Msg: TWMHotKey);
 Begin
    If Msg.HotKey = FHotKeyMain Then
       PopupMenuTray.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
 End;
 
-Procedure TFormMDIMain.RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String);
+Procedure TFormMDIMain.RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String; aSkipFromRecent: Boolean);
 Var
    varRecentItems: TERecentItem;
 Begin
@@ -1215,8 +1228,11 @@ Begin
       Else
          ShellExecute(FormMDIMain.Handle, 'open', PWideChar(aExecutableName), PWideChar(aParameter), PWideChar(aSourcePath), SW_SHOWNORMAL);
 
-      varRecentItems := RecentItems.AddItem(aName, aSourcePath, aExecutableName);
-      varRecentItems.Parameter.Add(aParameter);
+      if not aSkipFromRecent then
+      Begin
+         varRecentItems := RecentItems.AddItem(aName, aSourcePath, aExecutableName);
+         varRecentItems.Parameter.Add(aParameter);
+      End;
    Except
       // Do nothing. It's not easily possible to handle all the issues related to shell execute. { Ajmal }
    End;

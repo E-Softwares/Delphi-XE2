@@ -151,7 +151,7 @@ Begin
    If (aParameter = '') And (Parameter.Count > 0) Then
       aParameter := Parameter[0];
 
-   FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder);
+   FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder, False);
 End;
 
 Function TERecentItem.UnZip: Boolean;

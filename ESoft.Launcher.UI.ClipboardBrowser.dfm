@@ -32,7 +32,7 @@ object FormClipboardBrowser: TFormClipboardBrowser
       Left = 10
       Top = 5
       Width = 37
-      Height = 31
+      Height = 28
       Margins.Left = 8
       Align = alLeft
       Caption = 'Search'
@@ -106,19 +106,6 @@ object FormClipboardBrowser: TFormClipboardBrowser
         Visible = False
       end>
   end
-  object DBMemoData: TDBMemo
-    AlignWithMargins = True
-    Left = 203
-    Top = 47
-    Width = 450
-    Height = 263
-    Margins.Left = 0
-    Align = alRight
-    DataField = 'ClpBrdData'
-    DataSource = SourceClipboardItems
-    TabOrder = 2
-    OnExit = DBMemoDataExit
-  end
   object Panel1: TPanel
     AlignWithMargins = True
     Left = 3
@@ -130,7 +117,7 @@ object FormClipboardBrowser: TFormClipboardBrowser
     BevelOuter = bvLowered
     Caption = 'Panel1'
     ShowCaption = False
-    TabOrder = 3
+    TabOrder = 2
     object btnCancel: TButton
       AlignWithMargins = True
       Left = 565
@@ -160,6 +147,26 @@ object FormClipboardBrowser: TFormClipboardBrowser
       TabStop = False
       OnClick = btnSaveClick
     end
+  end
+  object DBRichEditData: TDBRichEdit
+    AlignWithMargins = True
+    Left = 203
+    Top = 47
+    Width = 450
+    Height = 263
+    Margins.Left = 0
+    Align = alRight
+    DataField = 'ClpBrdData'
+    DataSource = SourceClipboardItems
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = []
+    ParentFont = False
+    ScrollBars = ssBoth
+    TabOrder = 3
+    OnExit = DBRichEditDataExit
   end
   object ClntDSetClipBboardItems: TClientDataSet
     Aggregates = <>
@@ -318,7 +325,7 @@ object FormClipboardBrowser: TFormClipboardBrowser
     Left = 152
     Top = 136
     Bitmap = {
-      494C010105000900040010001000FFFFFFFFFF00FFFFFFFFFFFFFFFF424D3600
+      494C010105000900040010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
       0000000000003600000028000000400000002000000001002000000000000020
       0000000000000000000000000000000000000000000000000000000000000000
       0000000000000000000000000000000000000000000000000000000000000000
@@ -586,6 +593,7 @@ object FormClipboardBrowser: TFormClipboardBrowser
       F6CFFE008000FFFFF6B7FE000000FFFFF6B7FE000000FFFFF8B780000000FFFF
       FE8F80000001C1FBFE3F80000003C3FBFF7F80000003C3FBFE3F80010003C1F3
       FEBF80030003D863FC9F80070FC3FE07FDDF807F0003FFFFFDDF80FF8007FFFF
-      FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF}
+      FDDF81FFF87FFFFFFFFFFFFFFFFFFFFF00000000000000000000000000000000
+      000000000000}
   end
 end

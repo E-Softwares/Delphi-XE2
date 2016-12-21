@@ -60,6 +60,7 @@ Type
       Label10: TLabel;
       sEdtCurrBranch: TSpinEdit;
       chkCreateBranchFolder: TCheckBox;
+      chkSkipRecent: TCheckBox;
       Procedure sBtnBrowseAppSourceClick(Sender: TObject);
       Procedure btnOKClick(Sender: TObject);
       Procedure FormActivate(Sender: TObject);
@@ -126,6 +127,7 @@ Begin
    AppGroup.DestFolder := edtAppDest.Text;
    AppGroup.FileMask := edtFileMask.Text;
    AppGroup.CreateFolder := chkCreateFolder.Checked;
+   AppGroup.SkipFromRecent := chkSkipRecent.Checked;
    AppGroup.IsApplication := chkIsApplication.Checked;
    AppGroup.IsMajorBranching := chkMajor.Checked;
    AppGroup.IsMinorBranching := chkMinor.Checked;
@@ -231,6 +233,7 @@ Begin
    edtAppDest.Text := AppGroup.DestFolder;
    edtFileMask.Text := AppGroup.FileMask;
    chkCreateFolder.Checked := AppGroup.CreateFolder;
+   chkSkipRecent.Checked := AppGroup.SkipFromRecent;
    chkIsApplication.Checked := AppGroup.IsApplication;
    chkMajor.Checked := AppGroup.IsMajorBranching;
    chkMinor.Checked := AppGroup.IsMinorBranching;

@@ -197,7 +197,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Anchors = [akRight, akBottom]
       Caption = 'Cancel'
       ModalResult = 2
-      TabOrder = 8
+      TabOrder = 10
       TabStop = False
     end
     object btnOK: TButton
@@ -208,7 +208,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Anchors = [akRight, akBottom]
       Caption = 'OK'
       Default = True
-      TabOrder = 9
+      TabOrder = 11
       TabStop = False
       OnClick = btnOKClick
     end
@@ -231,13 +231,13 @@ object FormAppGroupEditor: TFormAppGroupEditor
     object edtFixedParams: TButtonedEdit
       Left = 100
       Top = 177
-      Width = 250
+      Width = 150
       Height = 21
       Images = FormMDIMain.ImageList_Ord
       RightButton.ImageIndex = 34
       RightButton.PressedImageIndex = 4
       RightButton.Visible = True
-      TabOrder = 7
+      TabOrder = 8
       TextHint = 'Fixed Prameter'
       OnRightButtonClick = edtFixedParamsRightButtonClick
     end
@@ -249,7 +249,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Caption = ' Create Folder'
       Checked = True
       State = cbChecked
-      TabOrder = 10
+      TabOrder = 7
       OnClick = chkCreateFolderClick
     end
     object chkIsApplication: TCheckBox
@@ -275,7 +275,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Width = 333
       Height = 141
       Caption = '  Branching  '
-      TabOrder = 11
+      TabOrder = 9
       object Label8: TLabel
         Left = 177
         Top = 82
@@ -445,6 +445,14 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Enabled = False
         TabOrder = 8
       end
+    end
+    object chkSkipRecent: TCheckBox
+      Left = 264
+      Top = 179
+      Width = 90
+      Height = 17
+      Caption = ' Skip Recent'
+      TabOrder = 12
     end
   end
 end

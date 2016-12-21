@@ -21,7 +21,11 @@ Uses
    Datasnap.DBClient,
    ESoft.Utils,
    ESoft.Launcher.Clipboard,
-   Vcl.Menus, Vcl.ImgList, Vcl.ActnList, Vcl.StdActns;
+   Vcl.Menus, 
+   Vcl.ImgList, 
+   Vcl.ActnList, 
+   Vcl.StdActns, 
+   Vcl.ComCtrls;
 
 Type
    TFormClipboardBrowser = Class(TForm)
@@ -29,7 +33,6 @@ Type
       Label1: TLabel;
       edtFilter: TButtonedEdit;
       dbGridClpBrdItems: TDBGrid;
-      DBMemoData: TDBMemo;
       ClntDSetClipBboardItems: TClientDataSet;
       ClntDSetClipBboardItemsName: TStringField;
       ClntDSetClipBboardItemsData: TStringField;
@@ -51,20 +54,21 @@ Type
       MItemDelete: TMenuItem;
       MItemRename: TMenuItem;
       MItemSave: TMenuItem;
-    MItemEdit: TMenuItem;
-    MItemCopy: TMenuItem;
-    MItemCut: TMenuItem;
-    aclNotes: TActionList;
-    imlNotes: TImageList;
-    actEditCut: TEditCut;
-    actEditCopy: TEditCopy;
-    actEditPaste: TEditPaste;
-    actEditSelectAll: TEditSelectAll;
-    actEditUndo: TEditUndo;
-    actEditDelete: TEditDelete;
-    Paste1: TMenuItem;
-    SelectAll1: TMenuItem;
-    N2: TMenuItem;
+      MItemEdit: TMenuItem;
+      MItemCopy: TMenuItem;
+      MItemCut: TMenuItem;
+      aclNotes: TActionList;
+      imlNotes: TImageList;
+      actEditCut: TEditCut;
+      actEditCopy: TEditCopy;
+      actEditPaste: TEditPaste;
+      actEditSelectAll: TEditSelectAll;
+      actEditUndo: TEditUndo;
+      actEditDelete: TEditDelete;
+      Paste1: TMenuItem;
+      SelectAll1: TMenuItem;
+      N2: TMenuItem;
+      DBRichEditData: TDBRichEdit;
       Procedure edtFilterChange(Sender: TObject);
       Procedure edtFilterKeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
       Procedure MItemCloseClick(Sender: TObject);
@@ -77,12 +81,12 @@ Type
       Procedure btnCancelClick(Sender: TObject);
       Procedure PMItemRenameClick(Sender: TObject);
       Procedure PopupMenuPopup(Sender: TObject);
-    procedure DBMemoDataExit(Sender: TObject);
     procedure actEditCutExecute(Sender: TObject);
     procedure actEditCopyExecute(Sender: TObject);
     procedure actEditPasteExecute(Sender: TObject);
     procedure actEditSelectAllExecute(Sender: TObject);
     procedure actEditUndoExecute(Sender: TObject);
+    procedure DBRichEditDataExit(Sender: TObject);
    Strict Private
       { Private declarations }
       Function ClipboardItems: TEClipboardItems;
@@ -107,27 +111,27 @@ Uses
 
 procedure TFormClipboardBrowser.actEditCopyExecute(Sender: TObject);
 begin
-   DBMemoData.CopyToClipboard;
+   DBRichEditData.CopyToClipboard;
 end;
 
 procedure TFormClipboardBrowser.actEditCutExecute(Sender: TObject);
 begin
-   DBMemoData.CutToClipboard;
+   DBRichEditData.CutToClipboard;
 end;
 
 procedure TFormClipboardBrowser.actEditPasteExecute(Sender: TObject);
 begin
-   DBMemoData.PasteFromClipboard;
+   DBRichEditData.PasteFromClipboard;
 end;
 
 procedure TFormClipboardBrowser.actEditSelectAllExecute(Sender: TObject);
 begin
-   DBMemoData.SelectAll;
+   DBRichEditData.SelectAll;
 end;
 
 procedure TFormClipboardBrowser.actEditUndoExecute(Sender: TObject);
 begin
-   DBMemoData.Undo;
+   DBRichEditData.Undo;
 end;
 
 Procedure TFormClipboardBrowser.btnCancelClick(Sender: TObject);
@@ -165,9 +169,9 @@ Begin
       Params.ExStyle := Params.ExStyle Or WS_EX_APPWINDOW;
 End;
 
-procedure TFormClipboardBrowser.DBMemoDataExit(Sender: TObject);
+procedure TFormClipboardBrowser.DBRichEditDataExit(Sender: TObject);
 begin
-   SelectedClpBrdItem.Data := DBMemoData.Lines.Text;
+   SelectedClpBrdItem.Data := DBRichEditData.Text;
 end;
 
 Procedure TFormClipboardBrowser.edtFilterChange(Sender: TObject);

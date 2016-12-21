@@ -93,7 +93,7 @@ Type
       FDestFolder: String;
       FFileMask: String;
       FDisplayLabel: String;
-      FCreateFolder, FCreateBranchFolder: Boolean;
+      FCreateFolder, FCreateBranchFolder, FSkipFromRecent: Boolean;
       FIcon: TIcon;
       FIsMajorBranching, FIsMinorBranching, FIsReleaseBranching: Boolean;
       FBranchingPrefix, FBranchingSufix: String;
@@ -130,6 +130,7 @@ Type
       Property DestFolder: String Read FDestFolder Write SetDestFolder;
       Property SourceFolder: String Read FSourceFolder Write SetSourceFolder;
       Property CreateFolder: Boolean Read FCreateFolder Write FCreateFolder;
+      property SkipFromRecent: Boolean Read FSkipFromRecent Write FSkipFromRecent;
       Property FixedParameter: String Read FFixedParameter Write FFixedParameter;
       Property IsApplication: Boolean Read FIsApplication Write FIsApplication;
       Property DisplayLabel: String Read FDisplayLabel Write FDisplayLabel;
@@ -182,6 +183,7 @@ Const
    cGroupSourceFolder = 'Source_Folder';
    cGroupDestFolder = 'Target_Folder';
    cGroupCreateFolder = 'Create_Folder';
+   cGroupSkipFromRecent = 'Skip_From_Recent';
    cGroupIsApp = 'Is_Application';
    cGroupLabel = 'Display_Label';
    cGroupIsMajorBranching = 'Is_MajorBranching';
@@ -205,6 +207,7 @@ Begin
    Inherited Create(True);
 
    FCreateFolder := True;
+   FSkipFromRecent := False;
    FSourceFolder := '';
    FDestFolder := '';
 End;
@@ -285,6 +288,7 @@ Begin
       SourceFolder := varIniFile.ReadString(Name, cGroupSourceFolder, '');
       DestFolder := varIniFile.ReadString(Name, cGroupDestFolder, '');
       CreateFolder := varIniFile.ReadBool(Name, cGroupCreateFolder, True);
+      SkipFromRecent := varIniFile.ReadBool(Name, cGroupSkipFromRecent, False);
       IsApplication := varIniFile.ReadBool(Name, cGroupIsApp, False);
       DisplayLabel := varIniFile.ReadString(Name, cGroupLabel, '');
       IsMajorBranching := varIniFile.ReadBool(Name, cGroupIsMajorBranching, False);
@@ -314,7 +318,7 @@ Begin
    If FixedParameter <> cParameterNone Then
       aParameter := aParameter + ' ' + FixedParameter;
 
-   FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder);
+   FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder, SkipFromRecent);
 End;
 
 Procedure TEApplicationGroup.SaveData(Const aFileName: String);
@@ -329,6 +333,7 @@ Begin
       varIniFile.WriteString(Name, cGroupSourceFolder, SourceFolder);
       varIniFile.WriteString(Name, cGroupDestFolder, DestFolder);
       varIniFile.WriteBool(Name, cGroupCreateFolder, CreateFolder);
+      varIniFile.WriteBool(Name, cGroupSkipFromRecent, SkipFromRecent);
       varIniFile.WriteBool(Name, cGroupIsApp, IsApplication);
       varIniFile.WriteString(Name, cGroupLabel, DisplayLabel);
       varIniFile.WriteBool(Name, cGroupIsMajorBranching, IsMajorBranching);
@@ -554,7 +559,7 @@ Begin
    If Owner.FixedParameter <> cParameterNone Then
       aParameter := aParameter + ' ' + Owner.FixedParameter;
 
-   FormMDIMain.RunApplication(Name, Owner.ExecutableName, aParameter, TargetFolder);
+   FormMDIMain.RunApplication(Name, Owner.ExecutableName, aParameter, TargetFolder, Owner.SkipFromRecent);
 End;
 
 Procedure TEApplication.SetOwner(Const Value: TEApplicationGroup);

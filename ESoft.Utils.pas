@@ -210,7 +210,7 @@ Var
 Begin
    iExtractedIconCount := ExtractIconEx(PWideChar(aFileName), 0, varLargeIcon, varSmallIcon, 1);
    Win32Check(iExtractedIconCount = 2);
-   aIcon.Handle := varLargeIcon;
+   aIcon.Handle := varSmallIcon;
 End;
 
 End.
