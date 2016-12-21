@@ -109,6 +109,8 @@ Begin
 
    EFreeAndNil(FIcon);
    sFileName := IncludeTrailingBackslash(SourceFolder) + ExecutableName;
+   If ExtractFileExt(sFileName) = '' Then
+      Exit;
    If Not FileExists(sFileName) Then
       Exit;
 

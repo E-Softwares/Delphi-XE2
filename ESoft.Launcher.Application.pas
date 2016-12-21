@@ -247,7 +247,10 @@ Begin
       sFileName := DestFolder + ExecutableName;
 
    EFreeAndNil(FIcon);
-   if not FileExists(sFileName) then
+   If ExtractFileExt(sFileName) = '' Then
+      Exit;
+
+   If not FileExists(sFileName) Then
     Exit;
 
    FIcon := TIcon.Create;

@@ -5257,7 +5257,7 @@ object FormMDIMain: TFormMDIMain
     Flags = [tfUseHiconMain, tfExpandedByDefault, tfShowProgressBar]
     FooterText = '0% Percentage done'
     RadioButtons = <>
-    Title = 'Please wait. Updateing . . . ! '
+    Title = 'Please wait. Updating . . . ! '
     OnButtonClicked = tskDlgUpdateListButtonClicked
     Left = 96
     Top = 296
