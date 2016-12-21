@@ -53,7 +53,7 @@ object FormParameterBrowser: TFormParameterBrowser
       AlignWithMargins = True
       Left = 55
       Top = 8
-      Width = 577
+      Width = 574
       Height = 21
       Margins.Left = 5
       Margins.Top = 6
@@ -69,9 +69,9 @@ object FormParameterBrowser: TFormParameterBrowser
     end
     object btnAdditionalParameters: TButton
       AlignWithMargins = True
-      Left = 643
+      Left = 640
       Top = 5
-      Width = 40
+      Width = 43
       Height = 28
       Align = alRight
       DropDownMenu = PopupMenuAdditionalParameters
