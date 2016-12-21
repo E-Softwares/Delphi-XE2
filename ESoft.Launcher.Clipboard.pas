@@ -209,7 +209,11 @@ var
    varJSONPair: TJSONPair;
 Begin
    FName := aJSONObj.Get(cJSON_NAME).JsonValue.Value;
-   FData := aJSONObj.Get(cJSON_DATA).JsonValue.Value;
+   try
+      FData := aJSONObj.Get(cJSON_DATA).JsonValue.Value;
+   except
+      FData := '';
+   end;
 End;
 
 Procedure TEClipboardItem.LoadFromClipboard;
