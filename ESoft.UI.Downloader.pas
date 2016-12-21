@@ -319,6 +319,7 @@ Begin
          InternetSetOption(hSession, INTERNET_OPTION_RESET_URLCACHE_SESSION, 0, 0);
          InternetCloseHandle(hService);
          InternetCloseHandle(hSession);
+         Sleep(500); // Just to wait for progressbar to get updated. { Ajmal }
       End;
       If Worker.IsCancelled Then
          Break;

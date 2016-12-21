@@ -348,7 +348,7 @@ object FormMDIMain: TFormMDIMain
       Caption = '-'
     end
     object PMItemExit: TMenuItem
-      Caption = 'Exit'
+      Caption = 'E&xit'
       ImageIndex = 39
       ShortCut = 32883
       OnClick = PMItemExitClick
@@ -5243,5 +5243,30 @@ object FormMDIMain: TFormMDIMain
       FF77FE07FFFE1FFFFFFF0000FFFFFFFFFFFFFFFFFFFF0000FFFFFFFFFFFFFFFF
       FFFF0000FFFFFFFFFFFFFFFFFFFF000000000000000000000000000000000000
       000000000000}
+  end
+  object tskDlgUpdateList: TTaskDialog
+    Buttons = <
+      item
+        Caption = 'Cancel'
+        ModalResult = 2
+      end>
+    Caption = 'Update'
+    CommonButtons = []
+    DefaultButton = tcbCancel
+    ExpandedText = 'Starting . . . !'
+    Flags = [tfUseHiconMain, tfExpandedByDefault, tfShowProgressBar]
+    FooterText = '0% Percentage done'
+    RadioButtons = <>
+    Title = 'Please wait. Updateing . . . ! '
+    OnButtonClicked = tskDlgUpdateListButtonClicked
+    Left = 96
+    Top = 296
+  end
+  object bkGndUpdateAppList: TBackgroundWorker
+    OnWork = bkGndUpdateAppListWork
+    OnWorkComplete = bkGndUpdateAppListWorkComplete
+    OnWorkProgress = bkGndUpdateAppListWorkProgress
+    Left = 64
+    Top = 296
   end
 end

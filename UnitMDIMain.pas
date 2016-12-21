@@ -47,7 +47,12 @@ Uses
    Vcl.DBClientActns,
    Vcl.DBActns,
    Vcl.ActnList,
-   ESoft.Launcher.Clipboard, AbBase, AbBrowse, AbZBrows, AbUnzper;
+   ESoft.Launcher.Clipboard,
+   AbBase,
+   AbBrowse,
+   AbZBrows,
+   AbUnzper,
+   BackgroundWorker;
 
 Const
    cIMG_NONE = -1;
@@ -126,6 +131,8 @@ Type
       ImageList_20: TImageList;
       PMItemNormal: TMenuItem;
       PMItemRunasAdministrator: TMenuItem;
+      tskDlgUpdateList: TTaskDialog;
+      bkGndUpdateAppList: TBackgroundWorker;
       Procedure sBtnBrowseConnectionClick(Sender: TObject);
       Procedure edtConnectionRightButtonClick(Sender: TObject);
       Procedure FormCreate(Sender: TObject);
@@ -153,6 +160,10 @@ Type
       Procedure cbGroupItemsChange(Sender: TObject);
       Procedure PMItemAddFromClipboardClick(Sender: TObject);
       Procedure PMItemViewOrEditNotesClick(Sender: TObject);
+      procedure bkGndUpdateAppListWork(Worker: TBackgroundWorker);
+      procedure bkGndUpdateAppListWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
+      procedure tskDlgUpdateListButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
+      procedure bkGndUpdateAppListWorkProgress(Worker: TBackgroundWorker; PercentDone: Integer);
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
@@ -167,6 +178,7 @@ Type
       FDisplayLabels: TStringList;
       FRecentItems: TERecentItems;
       FClipboardItems: TEClipboardItems;
+      FCurrentProgressMessage: String;
 
       Procedure OnRecentItemsChange(aSender: TObject);
       Function MenuItemApplications(Const aType: Integer = cIMG_NONE): TMenuItem;
@@ -186,13 +198,12 @@ Type
       Procedure ClearRecentItems(aSender: TObject);
       Function AppSeparatorMenuIndex(Const aType: Integer): Integer;
       Function GetClipboardItems: TEClipboardItems;
-  protected
-    procedure WMClipboardupdate(var aMessage: TMessage); message WM_CLIPBOARDUPDATE;
    Public
       { Public declarations }
       Procedure LoadConfig;
       Procedure SaveConfig;
       Function BackupFolder: String;
+      Procedure UpdateApplicationListInBackGround;
       Procedure UpdateApplicationList;
       Procedure ReloadFromIni;
       Procedure RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String; aSkipFromRecent: Boolean);
@@ -224,7 +235,7 @@ Uses
    ESoft.Launcher.UI.ClipboardBrowser;
 
 Const
-   cApplication_Version = 1010;
+   cApplication_Version = 1011;
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -278,10 +289,13 @@ Begin
       Begin
          MessageDlg('Aplication is already running.' + sLineBreak + 'Only single instance allowed.', mtError, [mbOK], 0);
          Application.Terminate;
+      End
+      Else
+      Begin
+         Visible := Not MItemStartMinimized.Checked;
+         UpdateApplicationList;
+         ClipboardItems.Load;
       End;
-      Visible := Not MItemStartMinimized.Checked;
-      UpdateApplicationList;
-      ClipboardItems.Load;
    End;
 End;
 
@@ -309,6 +323,26 @@ Function TFormMDIMain.BackupFolder: String;
 Begin
    Result := ParentFolder + cBackups;
 End;
+
+procedure TFormMDIMain.bkGndUpdateAppListWork(Worker: TBackgroundWorker);
+begin
+   UpdateApplicationListInBackGround;
+end;
+
+procedure TFormMDIMain.bkGndUpdateAppListWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
+begin
+   tskDlgUpdateList.Buttons[0].Click;
+end;
+
+procedure TFormMDIMain.bkGndUpdateAppListWorkProgress(Worker: TBackgroundWorker; PercentDone: Integer);
+var
+   iPercentageDone: Integer;
+begin
+   tskDlgUpdateList.ProgressBar.Position := PercentDone;
+   tskDlgUpdateList.ExpandedText := FCurrentProgressMessage;
+   iPercentageDone := Round((PercentDone/tskDlgUpdateList.ProgressBar.Max) * 100);
+   tskDlgUpdateList.FooterText := Format('%d%% compleated', [iPercentageDone]);
+end;
 
 Procedure TFormMDIMain.cbGroupItemsChange(Sender: TObject);
 Begin
@@ -338,7 +372,7 @@ Begin
       FFixedMenuItems.Add(MenuItemApplications[iCntr]);
 
    PanelDeveloper.Caption := 'Developed by Muhammad Ajmal P';
-   Caption := Format('Launcher [Version %d]', [cApplication_Version]);
+   // Caption := Format('Launcher [Version %d]', [cApplication_Version]);
    FInitialized := False;
    FParentFolder := ExtractFilePath(ParamStr(0));
    MItemAutoStart.Checked := AddToStartup(cESoftLauncher, REG_READ);
@@ -347,12 +381,11 @@ Begin
    RegisterAppHotKey;
 
    edtConnection.Text := Connections.FileName;
-   // AddClipboardFormatListener(Handle);
 End;
 
 Procedure TFormMDIMain.FormDestroy(Sender: TObject);
 Begin
-   // RemoveClipboardFormatListener(Handle);
+   bkGndUpdateAppList.WaitFor;
    UnRegisterHotKey(Handle, FHotKeyMain);
    GlobalDeleteAtom(FHotKeyMain);
    ClipboardItems.Save;
@@ -952,6 +985,19 @@ Begin
    PMItemRunasAdministrator.Checked := aValue;
 End;
 
+procedure TFormMDIMain.tskDlgUpdateListButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
+begin
+   if bkGndUpdateAppList.IsWorking then
+   Begin
+      CanClose := MessageDlg('Are you sure you want to cancel ?', mtWarning, [mbYes, mbNo], 0, mbNo) = mrYes;
+      If CanClose Then
+      Begin
+         bkGndUpdateAppList.Cancel;
+         bkGndUpdateAppList.WaitFor;
+      End;
+   End;
+end;
+
 Procedure TFormMDIMain.tvApplicationsDblClick(Sender: TObject);
 Var
    varSelected: TObject;
@@ -996,6 +1042,26 @@ Begin
 End;
 
 Procedure TFormMDIMain.UpdateApplicationList;
+var
+   bVisible: Boolean;
+begin
+   bVisible := Visible;
+   if not Visible then
+   Begin
+      WindowState := wsMinimized;
+      Show;
+   End;
+
+   try
+      tskDlgUpdateList.ProgressBar.Max := AppGroups.Count;
+      bkGndUpdateAppList.Execute;
+      tskDlgUpdateList.Execute;
+   finally
+      Visible := bVisible;
+   end;
+end;
+
+procedure TFormMDIMain.UpdateApplicationListInBackGround;
 Var
    varMenuItems: TStringList;
 
@@ -1122,7 +1188,7 @@ Var
    varGroupNames: TArray<String>;
    sCurrGroupName: String;
    iCurrGrpImageIndex: Integer;
-   iCntr: Integer;
+   iCntr, iProgressCntr: Integer;
    varIcon: TIcon;
 Begin
    varIcon := Nil;
@@ -1142,9 +1208,17 @@ Begin
 
       varGroupNames := AppGroups.Keys.ToArray;
       TArray.Sort<String>(varGroupNames);
+      iProgressCntr := 1;
       For sCurrGroupName In varGroupNames Do
       Begin
-         varAppGrp := AppGroups[sCurrGroupName];
+         Sleep(25);
+         FCurrentProgressMessage := 'Loading application group ' + sCurrGroupName;     
+         bkGndUpdateAppList.ReportProgressWait(iProgressCntr);
+         Inc(iProgressCntr);
+         If bkGndUpdateAppList.CancellationPending Then
+            Break;
+
+         varAppGrp := AppGroups[sCurrGroupName];    
          varCurrLabelNode := _GetLabelNode(varAppGrp.DisplayLabel, varParentNode);
          varCurrNode := tvApplications.Items.AddChildObject(varCurrLabelNode, varAppGrp.Name, varAppGrp);
          varCurrNode.ImageIndex := cIMG_GROUP;
@@ -1175,6 +1249,8 @@ Begin
          varCurrMenuGroup.Enabled := varAppGrp.Count > 0;
          For varApp In varAppGrp Do
          Begin
+            If bkGndUpdateAppList.CancellationPending Then
+               Break;
             varBranchMenuItem := _ApplicationBranch(varApp, varCurrMenuGroup);
             varCurrMenuItem := TMenuItem.Create(varBranchMenuItem);
             varCurrMenuItem.Caption := varApp.Name;
@@ -1185,7 +1261,8 @@ Begin
             varBranchMenuItem.Add(varCurrMenuItem);
          End;
       End;
-
+      Sleep(500); // Just to wait for progressbar to get updated. { Ajmal }
+      
       // Add a seperator before categories. Only if we have enabled no grouping { Ajmal }
       If cbGroupItems.ItemIndex = cGroupVisible_None Then
       Begin
@@ -1203,19 +1280,13 @@ Begin
    End;
 End;
 
-procedure TFormMDIMain.WMClipboardupdate(var aMessage: TMessage);
-begin
-   if Trim(Clipboard.AsText) = '' then
-      Exit;
-
-   ClipboardItems.AddItem(DateTimeToStr(Now)).LoadFromClipboard;
-   ClipboardItems.Save;
-end;
-
 Procedure TFormMDIMain.WMHotKey(Var Msg: TWMHotKey);
 Begin
    If Msg.HotKey = FHotKeyMain Then
-      PopupMenuTray.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+   Begin
+      If Not bkGndUpdateAppList.IsWorking Then
+         PopupMenuTray.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+   End;
 End;
 
 Procedure TFormMDIMain.RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String; aSkipFromRecent: Boolean);
