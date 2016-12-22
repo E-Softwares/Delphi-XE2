@@ -52,6 +52,7 @@ Uses
    AbBrowse,
    AbZBrows,
    AbUnzper,
+   ESoft.Launcher.PopupList,
    BackgroundWorker;
 
 Const
@@ -91,7 +92,7 @@ Type
       MenuFile: TMenuItem;
       N4: TMenuItem;
       MItemExit: TMenuItem;
-      MItemShowHide: TMenuItem;
+      MItemHide: TMenuItem;
       MItemStartMinimized: TMenuItem;
       MItemParameters: TMenuItem;
       PanelDeveloper: TPanel;
@@ -179,10 +180,10 @@ Type
       FRecentItems: TERecentItems;
       FClipboardItems: TEClipboardItems;
       FCurrentProgressMessage: String;
+      FPopupMenuClosed: Boolean;
 
       Procedure OnRecentItemsChange(aSender: TObject);
       Function MenuItemApplications(Const aType: Integer = cIMG_NONE): TMenuItem;
-      Procedure WMHotKey(Var Msg: TWMHotKey); Message WM_HOTKEY;
       Procedure OpenClipboardBrowser;
       Procedure OpenParamBrowser(Const aApplication: IEApplication = Nil);
       Function GetConnections: TEConnections;
@@ -198,6 +199,9 @@ Type
       Procedure ClearRecentItems(aSender: TObject);
       Function AppSeparatorMenuIndex(Const aType: Integer): Integer;
       Function GetClipboardItems: TEClipboardItems;
+   protected
+      procedure WndProc(var aMessage: TMessage); override;
+      procedure WMHotKey(var Msg: TWMHotKey); message WM_HOTKEY;
    Public
       { Public declarations }
       Procedure LoadConfig;
@@ -367,12 +371,12 @@ Var
 Begin
    // Store the permenent menu into FixedItem list. { Ajmal }
    // While updating the TrayIcon popup, we should not remove these menu items. { Ajmal }
+   FPopupMenuClosed := True;
    FFixedMenuItems := TList<TMenuItem>.Create;
    For iCntr := 0 To Pred(MenuItemApplications.Count) Do
       FFixedMenuItems.Add(MenuItemApplications[iCntr]);
 
    PanelDeveloper.Caption := 'Developed by Muhammad Ajmal P';
-   // Caption := Format('Launcher [Version %d]', [cApplication_Version]);
    FInitialized := False;
    FParentFolder := ExtractFilePath(ParamStr(0));
    MItemAutoStart.Checked := AddToStartup(cESoftLauncher, REG_READ);
@@ -899,7 +903,6 @@ End;
 
 Procedure TFormMDIMain.PopupMenuTrayPopup(Sender: TObject);
 Begin
-   // PMItemRecentItems.Enabled := Assigned(FRecentItems) And (RecentItems.Count > 0);
    PMItemApplications.Visible := cbGroupItems.ItemIndex In [cGroupVisible_All, cGroupVisible_ApplicationOnly];
    PMItemCategories.Visible := cbGroupItems.ItemIndex In [cGroupVisible_All, cGroupVisible_CategoryOnly];
    PMItemApplications.Enabled := PMItemApplications.Count > 0;
@@ -1284,10 +1287,22 @@ Procedure TFormMDIMain.WMHotKey(Var Msg: TWMHotKey);
 Begin
    If Msg.HotKey = FHotKeyMain Then
    Begin
-      If Not bkGndUpdateAppList.IsWorking Then
+      If FPopupMenuClosed And (Not bkGndUpdateAppList.IsWorking) Then
+      Begin
+         FPopupMenuClosed := False; // Set to false 1st. WndProc will be called before ending below Popup function { Ajmal }
          PopupMenuTray.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+      End;
    End;
 End;
+
+procedure TFormMDIMain.WndProc(var aMessage: TMessage);
+begin
+   Case aMessage.Msg Of
+      CM_MENUCLOSED: FPopupMenuClosed := True;
+   End;
+
+   Inherited;
+end;
 
 Procedure TFormMDIMain.RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String; aSkipFromRecent: Boolean);
 Var

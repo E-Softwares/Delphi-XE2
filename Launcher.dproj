@@ -78,6 +78,7 @@
 			<DCC_RemoteDebug>true</DCC_RemoteDebug>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+			<DCC_DebugDCUs>true</DCC_DebugDCUs>
 			<DCC_UnitSearchPath>$(ES_DELPHICONTROLS);$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<Icon_MainIcon>res\Images\EG_Icon.ico</Icon_MainIcon>
 			<Debugger_IncludeSystemVars>true</Debugger_IncludeSystemVars>
@@ -104,36 +105,31 @@
 			</DelphiCompile>
 			<DCCReference Include="UnitMDIMain.pas">
 				<Form>FormMDIMain</Form>
-				<FormType>dfm</FormType>
 			</DCCReference>
 			<DCCReference Include="ESoft.Launcher.Application.pas"/>
 			<DCCReference Include="ESoft.Launcher.UI.AppGroupEditor.pas">
 				<Form>FormAppGroupEditor</Form>
-				<FormType>dfm</FormType>
 			</DCCReference>
 			<DCCReference Include="ESoft.Launcher.Parameter.pas"/>
 			<DCCReference Include="ESoft.Launcher.UI.ParamEditor.pas">
 				<Form>FormParamEditor</Form>
-				<FormType>dfm</FormType>
 			</DCCReference>
 			<DCCReference Include="ESoft.Launcher.UI.ParamBrowser.pas">
 				<Form>FormParameterBrowser</Form>
-				<FormType>dfm</FormType>
 			</DCCReference>
 			<DCCReference Include="ESoft.Utils.pas"/>
 			<DCCReference Include="ESoft.Launcher.UI.BackupRestore.pas">
 				<Form>FormBackupRestore</Form>
-				<FormType>dfm</FormType>
 			</DCCReference>
 			<DCCReference Include="ESoft.Launcher.RecentItems.pas"/>
 			<DCCReference Include="ESoft.Launcher.Clipboard.pas"/>
 			<DCCReference Include="ESoft.Launcher.UI.ClipboardBrowser.pas">
 				<Form>FormClipboardBrowser</Form>
-				<FormType>dfm</FormType>
 			</DCCReference>
 			<DCCReference Include="ESoft.UI.Downloader.pas">
 				<Form>FormDownloader</Form>
 			</DCCReference>
+			<DCCReference Include="ESoft.Launcher.PopupList.pas"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>
 				<CfgParent>Base</CfgParent>
