@@ -91,7 +91,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 38
-        Height = 26
+        Height = 23
         Margins.Left = 8
         Align = alLeft
         Caption = 'Hotkey'
@@ -143,7 +143,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 66
-        Height = 24
+        Height = 21
         Margins.Left = 8
         Align = alLeft
         Caption = 'Connections'
@@ -198,7 +198,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 68
-        Height = 29
+        Height = 26
         Margins.Left = 8
         Align = alLeft
         Caption = 'Recent count'

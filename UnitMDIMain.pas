@@ -53,7 +53,12 @@ Uses
    AbZBrows,
    AbUnzper,
    ESoft.Launcher.PopupList,
-   BackgroundWorker;
+   BackgroundWorker, 
+   IdBaseComponent, 
+   IdComponent, 
+   IdTCPConnection, 
+   IdTCPClient,
+   IdHTTP;
 
 Const
    cIMG_NONE = -1;
@@ -239,7 +244,7 @@ Uses
    ESoft.Launcher.UI.ClipboardBrowser;
 
 Const
-   cApplication_Version = 1011;
+   cApplication_Version = 1012;
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -255,13 +260,8 @@ Const
    cGroupVisible_ApplicationOnly = 2;
    cGroupVisible_CategoryOnly = 3;
 
-   cAppZipFileNamesInSite: Array [0..4] of String = ( //
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.zip', //
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z01', //
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z02', //
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z03', //
-      'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z04' //
-   );
+   cAppZipFileNameInSite = 'http://esoft.ucoz.com/Downloads/Launcher/Launcher.zip';
+   cAppZipLinkedFileNameFormat = 'http://esoft.ucoz.com/Downloads/Launcher/Launcher.z%.2d';
    cUniqueAppVersionCode = cESoftLauncher;
 
    cConfigBasic = 'Basic';
@@ -744,29 +744,44 @@ End;
 Procedure TFormMDIMain.PMItemCheckforupdateClick(Sender: TObject);
 Var
    iAppVersion: Integer;
-   sMainZipFilaeName, sZipFilaeName: String;
+   sMainZipFilaeName, sZipFilaeName, sFileLink: String;
+   varIDHttp: TIdHTTP;
    varZipFile: TAbUnZipper;
    varDownloadManager: IEDownloadManager;
-  iCntr: Integer;
+   iCntr: Integer;
 Begin
    iAppVersion := StrToInt(GetAppVersionFromSite(cUniqueAppVersionCode));
-   If cApplication_Version < iAppVersion Then
+   If True Then // cApplication_Version < iAppVersion Then
    Begin
       If MessageDlg(cNewAppVersionAvailablePrompt, mtWarning, [mbYes, mbNo], 0, mbNo) = mrYes Then
       Begin
          sMainZipFilaeName := ParamStr(0) + '.zip';
          varDownloadManager := TEDownloadManager.Create(Self);
          varZipFile := TAbUnZipper.Create(Self);
+         varIDHttp := TIdHTTP.Create(Self);
          Try
-            for iCntr := 0 to Pred(Length(cAppZipFileNamesInSite)) do
+            sZipFilaeName := ParamStr(0) + ExtractFileExt(cAppZipFileNameInSite);
+            varDownloadManager.Add(cAppZipFileNameInSite, sZipFilaeName);
+            iCntr := 0;
+            While True Do
             Begin
-               sZipFilaeName := ParamStr(0) + ExtractFileExt(cAppZipFileNamesInSite[iCntr]);
-               varDownloadManager.Add(cAppZipFileNamesInSite[iCntr], sZipFilaeName);
-               // Delete the file if exists { Ajmal }
-               If FileExists(sZipFilaeName) Then
-               Begin
-                  If Not DeleteFile(sZipFilaeName) Then
-                     Raise Exception.Create('Cannot delete the file.');
+               Try
+                  Inc(iCntr);
+                  sFileLink := Format(cAppZipLinkedFileNameFormat, [iCntr]);
+                  sZipFilaeName := ParamStr(0) + ExtractFileExt(sFileLink);
+                  varIDHttp.Head(sFileLink);
+                  If varIDHttp.ResponseCode = 200 Then
+                  Begin
+                     varDownloadManager.Add(sFileLink, sZipFilaeName);
+                     // Delete the file if exists { Ajmal }
+                     If FileExists(sZipFilaeName) Then
+                     Begin
+                        If Not DeleteFile(sZipFilaeName) Then
+                           Raise Exception.Create('Cannot delete the file.');
+                     End;
+                  End;
+               Except
+                  Break; // No more file exist so exit loop. { Ajmal }
                End;
             End;
             If varDownloadManager.Download Then
@@ -783,6 +798,7 @@ Begin
                Close;
             End;
          Finally
+            varIDHttp.Free;
             varZipFile.Free;
          End;
       End;
