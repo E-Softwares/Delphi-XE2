@@ -110,7 +110,6 @@ Type
       MItemAutobackup: TMenuItem;
       MenuHelp: TMenuItem;
       PMItemCheckforupdate: TMenuItem;
-      PMItemRefresh: TMenuItem;
       imlAppIcons: TPngImageList;
       grpSettings: TGroupBox;
       pnlConnection: TPanel;
@@ -160,7 +159,6 @@ Type
       Procedure MItemBackupClick(Sender: TObject);
       Procedure MItemRestoreClick(Sender: TObject);
       Procedure PMItemCheckforupdateClick(Sender: TObject);
-      Procedure PMItemRefreshClick(Sender: TObject);
       Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
       Procedure tvApplicationsMouseDown(Sender: TObject; Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
       Procedure cbGroupItemsChange(Sender: TObject);
@@ -851,11 +849,6 @@ Begin
    Application.Terminate;
 End;
 
-Procedure TFormMDIMain.PMItemRefreshClick(Sender: TObject);
-Begin
-   //
-End;
-
 Procedure TFormMDIMain.PMItemAddFromClipboardClick(Sender: TObject);
 Var
    sClpBrdName: String;
@@ -1307,6 +1300,11 @@ Begin
       Begin
          FPopupMenuClosed := False; // Set to false 1st. WndProc will be called before ending below Popup function { Ajmal }
          PopupMenuTray.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+      End
+      Else If Not FPopupMenuClosed Then
+      Begin
+        FPopupMenuClosed := False;
+        PopupMenuTray.CloseMenu;
       End;
    End;
 End;

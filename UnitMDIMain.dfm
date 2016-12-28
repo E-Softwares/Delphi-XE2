@@ -314,11 +314,6 @@ object FormMDIMain: TFormMDIMain
       ImageIndex = 46
       OnClick = PMItemUpdateClick
     end
-    object PMItemRefresh: TMenuItem
-      Caption = 'Refresh'
-      ImageIndex = 37
-      OnClick = PMItemRefreshClick
-    end
     object PMItemExecutionMode: TMenuItem
       Caption = 'Execution Mode'
       ImageIndex = 42
