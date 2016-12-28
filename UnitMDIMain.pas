@@ -168,6 +168,7 @@ Type
       procedure bkGndUpdateAppListWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
       procedure tskDlgUpdateListButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
       procedure bkGndUpdateAppListWorkProgress(Worker: TBackgroundWorker; PercentDone: Integer);
+      procedure PMItemRunasAdministratorClick(Sender: TObject);
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
@@ -849,6 +850,13 @@ Begin
    Application.Terminate;
 End;
 
+procedure TFormMDIMain.PMItemRunasAdministratorClick(Sender: TObject);
+var
+   varMenuItem: TMenuItem Absolute Sender;
+begin
+   varMenuItem.Checked := True;
+end;
+
 Procedure TFormMDIMain.PMItemAddFromClipboardClick(Sender: TObject);
 Var
    sClpBrdName: String;
@@ -1296,16 +1304,13 @@ Procedure TFormMDIMain.WMHotKey(Var Msg: TWMHotKey);
 Begin
    If Msg.HotKey = FHotKeyMain Then
    Begin
-      If FPopupMenuClosed And (Not bkGndUpdateAppList.IsWorking) Then
+      If Not bkGndUpdateAppList.IsWorking Then
       Begin
          FPopupMenuClosed := False; // Set to false 1st. WndProc will be called before ending below Popup function { Ajmal }
+         SetForegroundWindow(Handle);
          PopupMenuTray.Popup(Mouse.CursorPos.X, Mouse.CursorPos.Y);
+         PostMessage(Handle, WM_NULL, 0, 0);
       End
-      Else If Not FPopupMenuClosed Then
-      Begin
-        FPopupMenuClosed := False;
-        PopupMenuTray.CloseMenu;
-      End;
    End;
 End;
 

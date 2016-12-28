@@ -318,17 +318,17 @@ object FormMDIMain: TFormMDIMain
       Caption = 'Execution Mode'
       ImageIndex = 42
       object PMItemNormal: TMenuItem
-        AutoCheck = True
         Caption = 'Normal'
         Checked = True
         GroupIndex = 11
         RadioItem = True
+        OnClick = PMItemRunasAdministratorClick
       end
       object PMItemRunasAdministrator: TMenuItem
-        AutoCheck = True
         Caption = 'Run as Administrator'
         GroupIndex = 11
         RadioItem = True
+        OnClick = PMItemRunasAdministratorClick
       end
     end
     object N2: TMenuItem
