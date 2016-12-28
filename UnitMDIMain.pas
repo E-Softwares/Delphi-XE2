@@ -243,7 +243,7 @@ Uses
    ESoft.Launcher.UI.ClipboardBrowser;
 
 Const
-   cApplication_Version = 1012;
+   cApplication_Version = 1013;
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -750,7 +750,7 @@ Var
    iCntr: Integer;
 Begin
    iAppVersion := StrToInt(GetAppVersionFromSite(cUniqueAppVersionCode));
-   If True Then // cApplication_Version < iAppVersion Then
+   If cApplication_Version < iAppVersion Then
    Begin
       If MessageDlg(cNewAppVersionAvailablePrompt, mtWarning, [mbYes, mbNo], 0, mbNo) = mrYes Then
       Begin
