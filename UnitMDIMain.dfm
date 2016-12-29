@@ -91,7 +91,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 38
-        Height = 23
+        Height = 26
         Margins.Left = 8
         Align = alLeft
         Caption = 'Hotkey'
@@ -143,7 +143,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 66
-        Height = 21
+        Height = 24
         Margins.Left = 8
         Align = alLeft
         Caption = 'Connections'
@@ -198,7 +198,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 68
-        Height = 26
+        Height = 29
         Margins.Left = 8
         Align = alLeft
         Caption = 'Recent count'
@@ -269,6 +269,7 @@ object FormMDIMain: TFormMDIMain
     Top = 200
   end
   object PopupMenuTray: TPopupMenu
+    AutoHotkeys = maManual
     Images = ImageList_20
     OnPopup = PopupMenuTrayPopup
     Left = 96
