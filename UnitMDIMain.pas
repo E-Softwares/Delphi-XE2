@@ -203,6 +203,7 @@ Type
       Procedure ClearRecentItems(aSender: TObject);
       Function AppSeparatorMenuIndex(Const aType: Integer): Integer;
       Function GetClipboardItems: TEClipboardItems;
+      Function GetImageIndexForFileExt(Const aExtension: String): Integer;
    protected
       procedure WndProc(var aMessage: TMessage); override;
       procedure WMHotKey(var Msg: TWMHotKey); message WM_HOTKEY;
@@ -247,12 +248,19 @@ Const
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
-   cIMG_GROUP = 12;
    cIMG_CATEGORY = 19;
    cIMG_HIDE = 40;
    cIMG_SHOW = 41;
    cIMG_APPLICATION = 45;
    cIMG_PARENT_GROUP = 48;
+   cIMG_GROUP = 54;
+   cIMG_FILE_UNKNOWN = 55;
+   cIMG_FILE_PDF = 56;
+   cIMG_FILE_ZIP = 57;
+   cIMG_FILE_DOC = 58;
+   cIMG_FILE_EXCEL = 59;
+   cIMG_FILE_MUSIC = 60;
+   cIMG_FILE_LINK = 61;
 
    cGroupVisible_None = 0;
    cGroupVisible_All = 1;
@@ -451,6 +459,25 @@ Begin
    End;
    Result := FDisplayLabels;
 End;
+
+Function TFormMDIMain.GetImageIndexForFileExt(Const aExtension: String): Integer;
+begin
+   Result := cIMG_FILE_UNKNOWN;
+   If SameText(aExtension, '.pdf') Then
+      Result := cIMG_FILE_PDF
+   Else If SameText(aExtension, '.zip') Then
+      Result := cIMG_FILE_ZIP
+   Else If SameText(aExtension, '.rar') Then
+      Result := cIMG_FILE_ZIP
+   Else If SameText(aExtension, '.doc') Or SameText(aExtension, '.docx') Then
+      Result := cIMG_FILE_DOC
+   Else If SameText(aExtension, '.xls') Or SameText(aExtension, '.xlsx') Then
+      Result := cIMG_FILE_EXCEL
+   Else If SameText(aExtension, '.mp3') Then
+      Result := cIMG_FILE_MUSIC
+   Else If SameText(aExtension, '.lnk') Then
+      Result := cIMG_FILE_LINK;
+end;
 
 Function TFormMDIMain.GetParameters: TEParameters;
 Begin
@@ -1041,7 +1068,12 @@ Begin
       If varSelected.InheritsFrom(TERecentItem) Then
          varRecentItem.RunExecutable(varMenu.Hint) // TERecentItem are in Popupmenu only { Ajmal }
       Else If varSelected.InheritsFrom(TEApplication) Then
-         OpenParamBrowser(varApplication)
+      Begin
+         If varApplication.Owner.FixedParameter = cParameterNone Then
+            varApplication.RunExecutable
+         Else
+           OpenParamBrowser(varApplication)
+      End
       Else If varSelected.InheritsFrom(TEApplicationGroup) And varAppGroup.IsApplication Then
       Begin
          If varAppGroup.FixedParameter = '' Then
@@ -1232,13 +1264,13 @@ Begin
       For sCurrGroupName In varGroupNames Do
       Begin
          Sleep(25);
-         FCurrentProgressMessage := 'Loading application group ' + sCurrGroupName;     
+         FCurrentProgressMessage := 'Loading application group ' + sCurrGroupName;
          bkGndUpdateAppList.ReportProgressWait(iProgressCntr);
          Inc(iProgressCntr);
          If bkGndUpdateAppList.CancellationPending Then
             Break;
 
-         varAppGrp := AppGroups[sCurrGroupName];    
+         varAppGrp := AppGroups[sCurrGroupName];
          varCurrLabelNode := _GetLabelNode(varAppGrp.DisplayLabel, varParentNode);
          varCurrNode := tvApplications.Items.AddChildObject(varCurrLabelNode, varAppGrp.Name, varAppGrp);
          varCurrNode.ImageIndex := cIMG_GROUP;
@@ -1277,7 +1309,9 @@ Begin
             varCurrMenuItem.Tag := NativeInt(varApp);
             varCurrMenuItem.OnClick := tvApplicationsDblClick;
             If iCurrGrpImageIndex <> cIMG_NONE Then
-               imlAppIcons.GetBitmap(iCurrGrpImageIndex, varCurrMenuItem.Bitmap);
+               imlAppIcons.GetBitmap(iCurrGrpImageIndex, varCurrMenuItem.Bitmap)
+            Else
+              varCurrMenuItem.ImageIndex := GetImageIndexForFileExt(varApp.Extension);
             varBranchMenuItem.Add(varCurrMenuItem);
          End;
       End;
