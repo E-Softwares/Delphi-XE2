@@ -261,6 +261,8 @@ Const
    cIMG_FILE_EXCEL = 59;
    cIMG_FILE_MUSIC = 60;
    cIMG_FILE_LINK = 61;
+   cIMG_FOLDER = 62;
+   cIMG_URL = 63;
 
    cGroupVisible_None = 0;
    cGroupVisible_All = 1;
@@ -1284,9 +1286,17 @@ Begin
          Begin
             varCurrMenuGroup.Tag := NativeInt(varAppGrp);
             varCurrMenuGroup.OnClick := tvApplicationsDblClick;
-            varCurrMenuGroup.ImageIndex := cIMG_APPLICATION;
-            varCurrNode.ImageIndex := cIMG_APPLICATION;
-            varCurrNode.SelectedIndex := cIMG_APPLICATION;
+
+            If StrStartsWith(varAppGrp.ExecutableName, 'http://', False) Or StrStartsWith(varAppGrp.ExecutableName, 'https://', False) Then
+               iCurrGrpImageIndex := cIMG_URL
+            Else If (varAppGrp.ExecutableName <> '') And (ExtractFileExt(varAppGrp.ExecutableName) = '') Then
+               iCurrGrpImageIndex := cIMG_FOLDER
+            Else
+               iCurrGrpImageIndex := cIMG_APPLICATION;
+
+            varCurrMenuGroup.ImageIndex := iCurrGrpImageIndex;
+            varCurrNode.ImageIndex := iCurrGrpImageIndex;
+            varCurrNode.SelectedIndex := iCurrGrpImageIndex;
             varIcon := varAppGrp.Icon;
             if Assigned(varIcon) then
             Begin
