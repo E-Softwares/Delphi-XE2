@@ -173,6 +173,8 @@ Begin
 
    FAppGroup := aAppGroup;
    edtGroupName.Enabled := Not Assigned(FAppGroup);
+   if edtGroupName.Enabled then
+      edtFixedParamsRightButtonClick(edtFixedParams);
 End;
 
 Procedure TFormAppGroupEditor.edtAppSourceRightButtonClick(Sender: TObject);

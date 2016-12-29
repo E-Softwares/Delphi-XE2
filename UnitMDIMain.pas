@@ -324,12 +324,15 @@ Begin
 End;
 
 Function TFormMDIMain.AppSeparatorMenuIndex(Const aType: Integer): Integer;
+var
+   varMenuItem: TMenuItem;
 Begin
    Result := 0;
-   If MenuItemApplications(aType) <> PopupMenuTray.Items Then
-      Exit;
-
-   Result := MenuItemApplications.IndexOf(PMItemAppSep);
+   varMenuItem := MenuItemApplications(aType);
+   If varMenuItem = PopupMenuTray.Items Then
+      Result := varMenuItem.IndexOf(PMItemAppSep)
+   Else
+      Result := varMenuItem.Count;
 End;
 
 Function TFormMDIMain.BackupFolder: String;
@@ -1375,7 +1378,7 @@ Begin
       If IsRunAsAdmin Then
          RunAsAdmin(Handle, PWideChar(aExecutableName), PWideChar(aParameter), PWideChar(aSourcePath))
       Else
-         ShellExecute(FormMDIMain.Handle, 'open', PWideChar(aExecutableName), PWideChar(aParameter), PWideChar(aSourcePath), SW_SHOWNORMAL);
+         ShellExecute(Handle, 'open', PWideChar(aExecutableName), PWideChar(aParameter), PWideChar(aSourcePath), SW_SHOWNORMAL);
 
       if not aSkipFromRecent then
       Begin
