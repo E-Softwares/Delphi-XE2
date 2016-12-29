@@ -560,16 +560,21 @@ End;
 Function TEApplication.RunExecutable(aParameter: String): Boolean;
 var
    sFileName: String;
+   sTargetFolder: String;
 Begin
    If Owner.FixedParameter <> cParameterNone Then
       aParameter := aParameter + ' ' + Owner.FixedParameter;
 
    sFileName := Owner.ExecutableName;
+   sTargetFolder := TargetFolder;
    // If Owner.ExecutableName is empty, it means this is a group of different files [Not extractable] { Ajmal }
-   If sFileName = '' Then 
+   If Owner.ExecutableName = '' Then
+   Begin
       sFileName := FileName;
+      sTargetFolder := Owner.SourceFolder;
+   End;
 
-   FormMDIMain.RunApplication(Name, sFileName, aParameter, TargetFolder, Owner.SkipFromRecent);
+   FormMDIMain.RunApplication(Name, sFileName, aParameter, sTargetFolder, Owner.SkipFromRecent);
 End;
 
 Procedure TEApplication.SetOwner(Const Value: TEApplicationGroup);

@@ -85,6 +85,7 @@ Type
       { Public declarations }
       Constructor Create(aOwner: TComponent; Const aAppGroup: TEApplicationGroup = Nil); Reintroduce;
 
+      Class Procedure CreatGroupFromFile(Const aFileName: String = '');
       Procedure LoadData;
 
    Published
@@ -99,7 +100,8 @@ Implementation
 {$R *.dfm}
 
 Uses
-   UnitMDIMain;
+   UnitMDIMain, 
+   ESoft.Utils;
 
 Type
    hTStringList = Class Helper For TStringList
@@ -117,7 +119,15 @@ Begin
          MessageDlg('Name cannot be empty', mtError, [mbOK], 0);
          Abort;
       End;
-      FAppGroup := FormMDIMain.AppGroups.AddItem(edtGroupName.Text);
+      Try
+         FAppGroup := FormMDIMain.AppGroups.AddItem(edtGroupName.Text);
+      Except
+         On Ex:Exception Do
+         Begin
+            edtGroupName.SetFocus;
+            Raise;
+         End;
+      End;
    End;
    AppGroup.DisplayLabel := FormMDIMain.DisplayLabels.AddText(cbDisplayLabel.Text);
    AppGroup.FixedParameter := edtFixedParams.Text;
@@ -176,6 +186,48 @@ Begin
    if edtGroupName.Enabled then
       edtFixedParamsRightButtonClick(edtFixedParams);
 End;
+
+Class Procedure TFormAppGroupEditor.CreatGroupFromFile(Const aFileName: String);
+var
+   bIsDirectory: Boolean;
+   varAppGroup: TEApplicationGroup;
+begin
+   bIsDirectory := False;
+   Try
+      varAppGroup := FormMDIMain.AppGroups.Items[ExtractFileName(aFileName)];
+   Except
+      varAppGroup := Nil;
+   End;
+
+   FormAppGroupEditor := TFormAppGroupEditor.Create(FormMDIMain, varAppGroup);
+   Try
+      If (varAppGroup = Nil) And (aFileName <> '') Then
+      Begin
+         bIsDirectory := DirectoryExists(aFileName);
+         With FormAppGroupEditor Do
+         Begin
+            edtAppDest.Clear;
+            edtGroupName.Text := ExtractFileName(aFileName);
+            chkIsApplication.Checked := Not bIsDirectory;
+            If bIsDirectory Then
+            Begin
+               edtAppSource.Text := aFileName;
+               chkCreateFolder.Checked := False;
+            End
+            Else
+            Begin
+               edtFileMask.Clear;
+               edtExeName.Text := edtGroupName.Text;
+               edtAppSource.Text := ExtractFilePath(aFileName);
+               edtFixedParams.Clear;
+            End;
+         End;
+      End;
+      FormAppGroupEditor.ShowModal;
+   Finally
+     FreeAndNil(FormAppGroupEditor);
+   End;
+end;
 
 Procedure TFormAppGroupEditor.edtAppSourceRightButtonClick(Sender: TObject);
 Begin

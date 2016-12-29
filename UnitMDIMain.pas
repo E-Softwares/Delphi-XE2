@@ -206,7 +206,8 @@ Type
       Function GetImageIndexForFileExt(Const aExtension: String): Integer;
    protected
       procedure WndProc(var aMessage: TMessage); override;
-      procedure WMHotKey(var Msg: TWMHotKey); message WM_HOTKEY;
+      procedure WMHotKey(var Msg: TWMHotKey); Message WM_HOTKEY;
+      procedure WMDropFiles(var aMessage: TWMDropFiles); Message WM_DROPFILES;
    Public
       { Public declarations }
       Procedure LoadConfig;
@@ -384,6 +385,7 @@ Begin
    // Store the permenent menu into FixedItem list. { Ajmal }
    // While updating the TrayIcon popup, we should not remove these menu items. { Ajmal }
    FPopupMenuClosed := True;
+   DragAcceptFiles(Handle, True);
    FFixedMenuItems := TList<TMenuItem>.Create;
    For iCntr := 0 To Pred(MenuItemApplications.Count) Do
       FFixedMenuItems.Add(MenuItemApplications[iCntr]);
@@ -764,12 +766,7 @@ End;
 
 Procedure TFormMDIMain.PMItemAddGroupClick(Sender: TObject);
 Begin
-   FormAppGroupEditor := TFormAppGroupEditor.Create(Self);
-   Try
-      FormAppGroupEditor.ShowModal;
-   Finally
-      EFreeAndNil(FormAppGroupEditor);
-   End;
+   TFormAppGroupEditor.CreatGroupFromFile;
 End;
 
 Procedure TFormMDIMain.PMItemCheckforupdateClick(Sender: TObject);
@@ -1345,6 +1342,29 @@ Begin
       tvApplications.Items.EndUpdate;
       varMenuItems.Free;
    End;
+End;
+
+procedure TFormMDIMain.WMDropFiles(var aMessage: TWMDropFiles);
+Const
+  cMAXFILENAME = 255;
+var
+  iCntr, iFileCount: Integer;
+  varFileName: Array [0..cMAXFILENAME] of Char;
+Begin
+  // how many files dropped?
+  iFileCount := DragQueryFile(aMessage.Drop, $FFFFFFFF, varFileName, cMAXFILENAME) ;
+
+  // query for file names
+  For iCntr := 0 to Pred(iFileCount) Do
+  Begin
+    DragQueryFile(aMessage.Drop, iCntr, varFileName, cMAXFILENAME);
+
+    //do something with the file(s)
+    TFormAppGroupEditor.CreatGroupFromFile(varFileName);
+  End;
+
+  //release memory
+  DragFinish(aMessage.Drop);
 End;
 
 Procedure TFormMDIMain.WMHotKey(Var Msg: TWMHotKey);

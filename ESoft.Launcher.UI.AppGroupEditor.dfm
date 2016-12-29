@@ -174,6 +174,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       RightButton.PressedImageIndex = 4
       RightButton.Visible = True
       TabOrder = 6
+      Text = '*.*'
       TextHint = 'File Mask'
       OnRightButtonClick = edtAppSourceRightButtonClick
     end
@@ -182,9 +183,14 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Top = 69
       Width = 150
       Height = 21
+      Hint = 
+        'If executable file name is empty you can open all the the files ' +
+        'inside source folder.'
+      ParentShowHint = False
       RightButton.ImageIndex = 34
       RightButton.PressedImageIndex = 4
       RightButton.Visible = True
+      ShowHint = True
       TabOrder = 2
       TextHint = 'Executable File Name'
       OnRightButtonClick = edtAppSourceRightButtonClick
