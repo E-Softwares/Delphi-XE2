@@ -161,6 +161,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       RightButton.Visible = True
       TabOrder = 5
       TextHint = 'Target Folder'
+      OnChange = edtAppDestChange
       OnRightButtonClick = edtAppSourceRightButtonClick
     end
     object edtFileMask: TButtonedEdit
@@ -175,6 +176,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       TabOrder = 6
       Text = '*.*'
       TextHint = 'File Mask'
+      OnChange = edtFileMaskChange
       OnRightButtonClick = edtAppSourceRightButtonClick
     end
     object edtExeName: TButtonedEdit
@@ -192,6 +194,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       ShowHint = True
       TabOrder = 2
       TextHint = 'Executable File Name'
+      OnChange = edtExeNameChange
       OnRightButtonClick = edtAppSourceRightButtonClick
     end
     object btnCancel: TButton
@@ -252,14 +255,20 @@ object FormAppGroupEditor: TFormAppGroupEditor
       TabOrder = 7
       OnClick = chkCreateFolderClick
     end
-    object chkIsApplication: TCheckBox
+    object cbGroupType: TComboBox
       Left = 264
-      Top = 71
-      Width = 90
-      Height = 17
-      Caption = ' Application'
+      Top = 69
+      Width = 86
+      Height = 21
+      Style = csDropDownList
+      ItemIndex = 2
       TabOrder = 3
-      OnClick = chkIsApplicationClick
+      Text = 'Zip Files'
+      OnChange = cbGroupTypeChange
+      Items.Strings = (
+        'Application'
+        'Folder'
+        'Zip Files')
     end
     object cbDisplayLabel: TComboBox
       Left = 100

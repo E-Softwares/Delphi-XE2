@@ -44,7 +44,7 @@ Type
       Label6: TLabel;
       cbFixedParams: TComboBox;
       chkCreateFolder: TCheckBox;
-      chkIsApplication: TCheckBox;
+      cbGroupType: TComboBox;
       Label7: TLabel;
       cbDisplayLabel: TComboBox;
       grpBranching: TGroupBox;
@@ -68,14 +68,18 @@ Type
       Procedure edtGroupNameKeyPress(Sender: TObject; Var Key: Char);
       Procedure edtGroupNameEnter(Sender: TObject);
       Procedure edtGroupNameChange(Sender: TObject);
-      Procedure chkIsApplicationClick(Sender: TObject);
       Procedure FormCreate(Sender: TObject);
       Procedure chkMajorClick(Sender: TObject);
       Procedure chkCreateFolderClick(Sender: TObject);
+      procedure cbGroupTypeChange(Sender: TObject);
+      procedure edtExeNameChange(Sender: TObject);
+      procedure edtAppDestChange(Sender: TObject);
+      procedure edtFileMaskChange(Sender: TObject);
    Private
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
+      FTempExecutable, FTempDestFolder, FTempFileMask: String;
       FInitialized: Boolean;
       FUpdateFileMakWithName: Boolean;
       FAppGroup: TEApplicationGroup;
@@ -134,9 +138,9 @@ Begin
    AppGroup.SourceFolder := edtAppSource.Text;
    AppGroup.DestFolder := edtAppDest.Text;
    AppGroup.FileMask := edtFileMask.Text;
-   AppGroup.CreateFolder := chkCreateFolder.Checked;
+   AppGroup.CreateFolder := chkCreateFolder.Enabled And chkCreateFolder.Checked;
    AppGroup.SkipFromRecent := chkSkipRecent.Checked;
-   AppGroup.IsApplication := chkIsApplication.Checked;
+   AppGroup.GroupType := cbGroupType.ItemIndex;
    AppGroup.IsMajorBranching := chkMajor.Checked;
    AppGroup.IsMinorBranching := chkMinor.Checked;
    AppGroup.IsReleaseBranching := chkRelease.Checked;
@@ -151,17 +155,33 @@ Begin
    ModalResult := mrOk;
 End;
 
+procedure TFormAppGroupEditor.cbGroupTypeChange(Sender: TObject);
+begin
+   chkCreateFolder.Enabled := cbGroupType.ItemIndex = cGroupType_ZipFiles;
+   grpBranching.Enabled := cbGroupType.ItemIndex = cGroupType_ZipFiles;
+
+   edtFileMask.Enabled := cbGroupType.ItemIndex <> cGroupType_Application;
+   If Not edtFileMask.Enabled Then
+      edtFileMask.Clear
+   Else
+      edtFileMask.Text := FTempFileMask;
+
+   edtAppDest.Enabled := cbGroupType.ItemIndex = cGroupType_ZipFiles;
+   If Not edtAppDest.Enabled Then
+      edtAppDest.Clear
+   Else
+      edtAppDest.Text := FTempDestFolder;
+
+   edtExeName.Enabled := cbGroupType.ItemIndex <> cGroupType_Folder;
+   If Not edtExeName.Enabled Then
+      edtExeName.Clear
+   Else
+      edtExeName.Text := FTempExecutable;
+end;
+
 Procedure TFormAppGroupEditor.chkCreateFolderClick(Sender: TObject);
 Begin
    chkCreateBranchFolder.Enabled := chkCreateFolder.Checked And edtPrefix.Enabled;
-End;
-
-Procedure TFormAppGroupEditor.chkIsApplicationClick(Sender: TObject);
-Begin
-   edtAppDest.Enabled := Not chkIsApplication.Checked;
-   edtFileMask.Enabled := Not chkIsApplication.Checked;
-   chkCreateFolder.Enabled := Not chkIsApplication.Checked;
-   grpBranching.Enabled := Not chkIsApplication.Checked;
 End;
 
 Procedure TFormAppGroupEditor.chkMajorClick(Sender: TObject);
@@ -207,8 +227,8 @@ begin
          With FormAppGroupEditor Do
          Begin
             edtAppDest.Clear;
+            cbGroupType.ItemIndex := cGroupType_Folder;
             edtGroupName.Text := ExtractFileName(aFileName);
-            chkIsApplication.Checked := Not bIsDirectory;
             If bIsDirectory Then
             Begin
                edtAppSource.Text := aFileName;
@@ -218,10 +238,12 @@ begin
             Else
             Begin
                edtFileMask.Clear;
+               cbGroupType.ItemIndex := cGroupType_Application;
                edtExeName.Text := edtGroupName.Text;
                edtAppSource.Text := ExtractFilePath(aFileName);
                cbFixedParams.ItemIndex := -1;
             End;
+            cbGroupTypeChange(Nil);
          End;
       End;
       Result := FormAppGroupEditor.ShowModal;
@@ -230,10 +252,28 @@ begin
    End;
 end;
 
+procedure TFormAppGroupEditor.edtAppDestChange(Sender: TObject);
+begin
+   If Trim(edtAppDest.Text) <> '' Then
+      FTempDestFolder := edtAppDest.Text;
+end;
+
 Procedure TFormAppGroupEditor.edtAppSourceRightButtonClick(Sender: TObject);
 Begin
    TButtonedEdit(Sender).Text := '';
 End;
+
+procedure TFormAppGroupEditor.edtExeNameChange(Sender: TObject);
+begin
+   If Trim(edtExeName.Text) <> '' Then
+      FTempExecutable := edtExeName.Text;
+end;
+
+procedure TFormAppGroupEditor.edtFileMaskChange(Sender: TObject);
+begin
+   If Trim(edtFileMask.Text) <> '' Then
+      FTempFileMask := edtFileMask.Text;
+end;
 
 Procedure TFormAppGroupEditor.edtGroupNameChange(Sender: TObject);
 Begin
@@ -265,6 +305,9 @@ End;
 Procedure TFormAppGroupEditor.FormCreate(Sender: TObject);
 Begin
    cbDisplayLabel.Items := FormMDIMain.DisplayLabels;
+   FTempExecutable := edtExeName.Text;
+   FTempDestFolder := edtAppDest.Text;
+   FTempFileMask := edtFileMask.Text;
 End;
 
 Procedure TFormAppGroupEditor.LoadData;
@@ -278,7 +321,7 @@ Begin
    edtFileMask.Text := AppGroup.FileMask;
    chkCreateFolder.Checked := AppGroup.CreateFolder;
    chkSkipRecent.Checked := AppGroup.SkipFromRecent;
-   chkIsApplication.Checked := AppGroup.IsApplication;
+   cbGroupType.ItemIndex := AppGroup.GroupType;
    chkMajor.Checked := AppGroup.IsMajorBranching;
    chkMinor.Checked := AppGroup.IsMinorBranching;
    chkRelease.Checked := AppGroup.IsReleaseBranching;
@@ -289,7 +332,7 @@ Begin
    sEdtCurrBranch.Value := AppGroup.CurrentBranch;
    chkCreateBranchFolder.Checked := AppGroup.CreateBranchFolder;
 
-   chkIsApplicationClick(Nil);
+   cbGroupTypeChange(Nil);
 End;
 
 Procedure TFormAppGroupEditor.sBtnBrowseAppSourceClick(Sender: TObject);

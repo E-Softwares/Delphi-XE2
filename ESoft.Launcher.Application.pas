@@ -36,6 +36,10 @@ Const
    cParameterPick = '<ePick>';
    cInvalidBuildNumber = -1;
 
+   cGroupType_Application = 0;
+   cGroupType_Folder = 1;
+   cGroupType_ZipFiles = 2;
+
 Type
    eTAppFile = (eafName, eafFileName, eafExtension);
 
@@ -87,7 +91,7 @@ Type
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
-      FIsApplication: Boolean;
+      FGroupType: Integer;
       FFixedParameter, FExecutableName, FName: String;
       FSourceFolder: String;
       FDestFolder: String;
@@ -99,6 +103,7 @@ Type
       FBranchingPrefix, FBranchingSufix: String;
       FMainBranch, FCurrentBranch, FNoOfBuilds: Integer;
 
+      Function GetIsApplication: Boolean;
       Function GetActualName: String;
       Procedure SetSourceFolder(Const Value: String);
       Procedure SetDestFolder(Const Value: String);
@@ -132,7 +137,7 @@ Type
       Property CreateFolder: Boolean Read FCreateFolder Write FCreateFolder;
       property SkipFromRecent: Boolean Read FSkipFromRecent Write FSkipFromRecent;
       Property FixedParameter: String Read FFixedParameter Write FFixedParameter;
-      Property IsApplication: Boolean Read FIsApplication Write FIsApplication;
+      Property IsApplication: Boolean Read GetIsApplication;
       Property DisplayLabel: String Read FDisplayLabel Write FDisplayLabel;
       Property Icon: TIcon Read GetIcon;
       Property IsMajorBranching: Boolean Read FIsMajorBranching Write FIsMajorBranching;
@@ -144,6 +149,7 @@ Type
       Property MainBranch: Integer Read FMainBranch Write FMainBranch;
       Property CurrentBranch: Integer Read FCurrentBranch Write FCurrentBranch;
       Property CreateBranchFolder: Boolean Read FCreateBranchFolder Write FCreateBranchFolder;
+      Property GroupType: Integer Read FGroupType Write FGroupType;
    End;
 
 Type
@@ -184,7 +190,7 @@ Const
    cGroupDestFolder = 'Target_Folder';
    cGroupCreateFolder = 'Create_Folder';
    cGroupSkipFromRecent = 'Skip_From_Recent';
-   cGroupIsApp = 'Is_Application';
+   cGroupType = 'Group_Type';
    cGroupLabel = 'Display_Label';
    cGroupIsMajorBranching = 'Is_MajorBranching';
    cGroupIsMinorBranching = 'Is_MinorBranching';
@@ -262,6 +268,11 @@ Begin
    End;
 End;
 
+Function TEApplicationGroup.GetIsApplication: Boolean;
+Begin
+   Result := GroupType = cGroupType_Application;
+End;
+
 Procedure TEApplicationGroup.LoadApplications;
 Var
    varSearch: TSearchRec;
@@ -292,7 +303,16 @@ Begin
       DestFolder := varIniFile.ReadString(Name, cGroupDestFolder, '');
       CreateFolder := varIniFile.ReadBool(Name, cGroupCreateFolder, True);
       SkipFromRecent := varIniFile.ReadBool(Name, cGroupSkipFromRecent, False);
-      IsApplication := varIniFile.ReadBool(Name, cGroupIsApp, False);
+      // Is_Application should be removed soon { Ajmal }
+      GroupType := varIniFile.ReadInteger(Name, 'Is_Application', -1);
+      If GroupType = -1 Then
+         GroupType := varIniFile.ReadInteger(Name, cGroupType, 0)
+      Else
+      Begin
+         GroupType := IfThen(GroupType = 0, 2, 0);
+         varIniFile.DeleteKey(Name, 'Is_Application');
+      End;
+
       DisplayLabel := varIniFile.ReadString(Name, cGroupLabel, '');
       IsMajorBranching := varIniFile.ReadBool(Name, cGroupIsMajorBranching, False);
       IsMinorBranching := varIniFile.ReadBool(Name, cGroupIsMinorBranching, False);
@@ -337,7 +357,7 @@ Begin
       varIniFile.WriteString(Name, cGroupDestFolder, DestFolder);
       varIniFile.WriteBool(Name, cGroupCreateFolder, CreateFolder);
       varIniFile.WriteBool(Name, cGroupSkipFromRecent, SkipFromRecent);
-      varIniFile.WriteBool(Name, cGroupIsApp, IsApplication);
+      varIniFile.WriteInteger(Name, cGroupType, GroupType);
       varIniFile.WriteString(Name, cGroupLabel, DisplayLabel);
       varIniFile.WriteBool(Name, cGroupIsMajorBranching, IsMajorBranching);
       varIniFile.WriteBool(Name, cGroupIsMinorBranching, IsMinorBranching);
@@ -612,6 +632,9 @@ Var
 {$IFDEF AbbreviaZipper}
    varUnAbZipper: TAbUnZipper Absolute varZipObj;
 Begin
+   If Owner.GroupType <> cGroupType_ZipFiles Then
+      Exit(False);
+
    varZipObj := TAbUnZipper.Create(Nil);
    If Assigned(FormParameterBrowser) Then
    Begin
