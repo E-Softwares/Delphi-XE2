@@ -68,7 +68,6 @@ Type
       Procedure edtGroupNameKeyPress(Sender: TObject; Var Key: Char);
       Procedure edtGroupNameEnter(Sender: TObject);
       Procedure edtGroupNameChange(Sender: TObject);
-      Procedure FormClose(Sender: TObject; Var Action: TCloseAction);
       Procedure chkIsApplicationClick(Sender: TObject);
       Procedure FormCreate(Sender: TObject);
       Procedure edtFixedParamsRightButtonClick(Sender: TObject);
@@ -85,7 +84,7 @@ Type
       { Public declarations }
       Constructor Create(aOwner: TComponent; Const aAppGroup: TEApplicationGroup = Nil); Reintroduce;
 
-      Class Procedure CreatGroupFromFile(Const aFileName: String = '');
+      Class Function CreatGroupFromFile(Const aFileName: String = ''): TModalResult;
       Procedure LoadData;
 
    Published
@@ -187,11 +186,12 @@ Begin
       edtFixedParamsRightButtonClick(edtFixedParams);
 End;
 
-Class Procedure TFormAppGroupEditor.CreatGroupFromFile(Const aFileName: String);
+Class Function TFormAppGroupEditor.CreatGroupFromFile(Const aFileName: String): TModalResult;
 var
    bIsDirectory: Boolean;
    varAppGroup: TEApplicationGroup;
 begin
+   Result := mrNone;
    bIsDirectory := False;
    Try
       varAppGroup := FormMDIMain.AppGroups.Items[ExtractFileName(aFileName)];
@@ -223,7 +223,7 @@ begin
             End;
          End;
       End;
-      FormAppGroupEditor.ShowModal;
+      Result := FormAppGroupEditor.ShowModal;
    Finally
      FreeAndNil(FormAppGroupEditor);
    End;
@@ -264,12 +264,6 @@ Begin
       If Assigned(FAppGroup) Then
          LoadData;
    End;
-End;
-
-Procedure TFormAppGroupEditor.FormClose(Sender: TObject; Var Action: TCloseAction);
-Begin
-   If ModalResult = mrOk Then
-      FormMDIMain.UpdateApplicationList;
 End;
 
 Procedure TFormAppGroupEditor.FormCreate(Sender: TObject);

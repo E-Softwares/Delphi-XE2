@@ -14,7 +14,6 @@ object FormAppGroupEditor: TFormAppGroupEditor
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
-  OnClose = FormClose
   OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13

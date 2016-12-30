@@ -766,7 +766,8 @@ End;
 
 Procedure TFormMDIMain.PMItemAddGroupClick(Sender: TObject);
 Begin
-   TFormAppGroupEditor.CreatGroupFromFile;
+   If TFormAppGroupEditor.CreatGroupFromFile  = mrOk Then
+      UpdateApplicationList;
 End;
 
 Procedure TFormMDIMain.PMItemCheckforupdateClick(Sender: TObject);
@@ -866,7 +867,8 @@ Begin
    Begin
       FormAppGroupEditor := TFormAppGroupEditor.Create(Self, varSelected As TEApplicationGroup);
       Try
-         FormAppGroupEditor.ShowModal;
+         If FormAppGroupEditor.ShowModal = mrOk Then
+            UpdateApplicationList;
       Finally
          FormAppGroupEditor.Free;
       End;
@@ -1348,23 +1350,24 @@ procedure TFormMDIMain.WMDropFiles(var aMessage: TWMDropFiles);
 Const
   cMAXFILENAME = 255;
 var
-  iCntr, iFileCount: Integer;
-  varFileName: Array [0..cMAXFILENAME] of Char;
+   iCntr, iFileCount: Integer;
+   varFileName: Array [0..cMAXFILENAME] of Char;
+   varModalResult: TModalResult;
 Begin
-  // how many files dropped?
-  iFileCount := DragQueryFile(aMessage.Drop, $FFFFFFFF, varFileName, cMAXFILENAME) ;
-
-  // query for file names
-  For iCntr := 0 to Pred(iFileCount) Do
-  Begin
-    DragQueryFile(aMessage.Drop, iCntr, varFileName, cMAXFILENAME);
-
-    //do something with the file(s)
-    TFormAppGroupEditor.CreatGroupFromFile(varFileName);
-  End;
-
-  //release memory
-  DragFinish(aMessage.Drop);
+   varModalResult := mrNone;
+   iFileCount := DragQueryFile(aMessage.Drop, $FFFFFFFF, varFileName, cMAXFILENAME) ;
+   Try
+      For iCntr := 0 to Pred(iFileCount) Do
+      Begin
+         DragQueryFile(aMessage.Drop, iCntr, varFileName, cMAXFILENAME);
+         If TFormAppGroupEditor.CreatGroupFromFile(varFileName) = mrOk Then
+            varModalResult := mrOk; // If any one of the drop file is saved then update the list { Ajmal }
+      End;
+   Finally
+      DragFinish(aMessage.Drop);
+      If varModalResult = mrOk Then
+         UpdateApplicationList;
+   End;
 End;
 
 Procedure TFormMDIMain.WMHotKey(Var Msg: TWMHotKey);
