@@ -233,18 +233,13 @@ object FormAppGroupEditor: TFormAppGroupEditor
       OnKeyPress = edtGroupNameKeyPress
       OnRightButtonClick = edtAppSourceRightButtonClick
     end
-    object edtFixedParams: TButtonedEdit
+    object cbFixedParams: TComboBox
       Left = 100
       Top = 177
       Width = 150
       Height = 21
-      Images = FormMDIMain.ImageList_Ord
-      RightButton.ImageIndex = 34
-      RightButton.PressedImageIndex = 4
-      RightButton.Visible = True
       TabOrder = 8
       TextHint = 'Fixed Prameter'
-      OnRightButtonClick = edtFixedParamsRightButtonClick
     end
     object chkCreateFolder: TCheckBox
       Left = 264

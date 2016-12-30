@@ -33,7 +33,7 @@ Uses
    ESoft.Utils;
 
 Const
-   cParameterNone = '<eNone>';
+   cParameterPick = '<ePick>';
    cInvalidBuildNumber = -1;
 
 Type
@@ -318,7 +318,7 @@ Begin
    If Not IsApplication Then
       Raise Exception.Create('Execution failed. Group is not created as application.');
 
-   If FixedParameter <> cParameterNone Then
+   If FixedParameter <> cParameterPick Then
       aParameter := aParameter + ' ' + FixedParameter;
 
    FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder, SkipFromRecent);
@@ -562,7 +562,7 @@ var
    sFileName: String;
    sTargetFolder: String;
 Begin
-   If Owner.FixedParameter <> cParameterNone Then
+   If Owner.FixedParameter <> cParameterPick Then
       aParameter := aParameter + ' ' + Owner.FixedParameter;
 
    sFileName := Owner.ExecutableName;

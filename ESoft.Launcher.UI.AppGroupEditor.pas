@@ -42,7 +42,7 @@ Type
       Label1: TLabel;
       edtGroupName: TButtonedEdit;
       Label6: TLabel;
-      edtFixedParams: TButtonedEdit;
+      cbFixedParams: TComboBox;
       chkCreateFolder: TCheckBox;
       chkIsApplication: TCheckBox;
       Label7: TLabel;
@@ -70,7 +70,6 @@ Type
       Procedure edtGroupNameChange(Sender: TObject);
       Procedure chkIsApplicationClick(Sender: TObject);
       Procedure FormCreate(Sender: TObject);
-      Procedure edtFixedParamsRightButtonClick(Sender: TObject);
       Procedure chkMajorClick(Sender: TObject);
       Procedure chkCreateFolderClick(Sender: TObject);
    Private
@@ -129,7 +128,7 @@ Begin
       End;
    End;
    AppGroup.DisplayLabel := FormMDIMain.DisplayLabels.AddText(cbDisplayLabel.Text);
-   AppGroup.FixedParameter := edtFixedParams.Text;
+   AppGroup.FixedParameter := cbFixedParams.Text;
    AppGroup.ExecutableName := edtExeName.Text;
    AppGroup.Name := edtGroupName.Text;
    AppGroup.SourceFolder := edtAppSource.Text;
@@ -180,10 +179,11 @@ Begin
    FInitialized := False;
    Inherited Create(aOwner);
 
+   cbFixedParams.Clear;
+   cbFixedParams.Items.Add(cParameterPick);
+
    FAppGroup := aAppGroup;
    edtGroupName.Enabled := Not Assigned(FAppGroup);
-   if edtGroupName.Enabled then
-      edtFixedParamsRightButtonClick(edtFixedParams);
 End;
 
 Class Function TFormAppGroupEditor.CreatGroupFromFile(Const aFileName: String): TModalResult;
@@ -213,13 +213,14 @@ begin
             Begin
                edtAppSource.Text := aFileName;
                chkCreateFolder.Checked := False;
+               chkSkipRecent.Checked := True;
             End
             Else
             Begin
                edtFileMask.Clear;
                edtExeName.Text := edtGroupName.Text;
                edtAppSource.Text := ExtractFilePath(aFileName);
-               edtFixedParams.Clear;
+               cbFixedParams.ItemIndex := -1;
             End;
          End;
       End;
@@ -232,11 +233,6 @@ end;
 Procedure TFormAppGroupEditor.edtAppSourceRightButtonClick(Sender: TObject);
 Begin
    TButtonedEdit(Sender).Text := '';
-End;
-
-Procedure TFormAppGroupEditor.edtFixedParamsRightButtonClick(Sender: TObject);
-Begin
-   edtFixedParams.Text := cParameterNone;
 End;
 
 Procedure TFormAppGroupEditor.edtGroupNameChange(Sender: TObject);
@@ -274,7 +270,7 @@ End;
 Procedure TFormAppGroupEditor.LoadData;
 Begin
    cbDisplayLabel.ItemIndex := cbDisplayLabel.Items.IndexOf(AppGroup.DisplayLabel);
-   edtFixedParams.Text := AppGroup.FixedParameter;
+   cbFixedParams.Text := AppGroup.FixedParameter;
    edtExeName.Text := AppGroup.ExecutableName;
    edtGroupName.Text := AppGroup.Name;
    edtAppSource.Text := AppGroup.SourceFolder;

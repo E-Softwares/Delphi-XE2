@@ -1073,14 +1073,14 @@ Begin
          varRecentItem.RunExecutable(varMenu.Hint) // TERecentItem are in Popupmenu only { Ajmal }
       Else If varSelected.InheritsFrom(TEApplication) Then
       Begin
-         If varApplication.Owner.FixedParameter = cParameterNone Then
-            varApplication.RunExecutable
+         If varApplication.Owner.FixedParameter = cParameterPick Then
+            OpenParamBrowser(varApplication)
          Else
-           OpenParamBrowser(varApplication)
+            varApplication.RunExecutable;
       End
       Else If varSelected.InheritsFrom(TEApplicationGroup) And varAppGroup.IsApplication Then
       Begin
-         If varAppGroup.FixedParameter = '' Then
+         If varAppGroup.FixedParameter = cParameterPick Then
             OpenParamBrowser(varAppGroup)
          Else
             varAppGroup.RunExecutable;
