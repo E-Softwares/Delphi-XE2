@@ -68,6 +68,7 @@ Const
    cConnection_INI = 'V6ConnectionIds.ini';
    cConfig_INI = 'Config.ini';
    cGroup_INI = 'Group.eini';
+   cTemplateGroup_INI = 'TemplateGroup.eini';
    cParam_INI = 'Params.eini';
    cClipbord_Data = 'ClpBrd.edat';
    cConnectionState = 'CONNECTION_STATE';
@@ -177,7 +178,7 @@ Type
       FLastUsedParamCode: String;
       FParameters: TEParameters;
       FInitialized: Boolean;
-      FAppGroups: TEApplicationGroups;
+      FAppGroups, FTemplateGroups: TEApplicationGroups;
       FParentFolder: String;
       FConnections: TEConnections;
       FDisplayLabels: TStringList;
@@ -204,6 +205,7 @@ Type
       Function AppSeparatorMenuIndex(Const aType: Integer): Integer;
       Function GetClipboardItems: TEClipboardItems;
       Function GetImageIndexForFileExt(Const aExtension: String): Integer;
+      Function GetAppGroupTemplates: TEApplicationGroups;
    protected
       procedure WndProc(var aMessage: TMessage); override;
       procedure WMHotKey(var Msg: TWMHotKey); Message WM_HOTKEY;
@@ -221,6 +223,7 @@ Type
       Property RecentItems: TERecentItems Read GetRecentItems;
    Published
       Property AppGroups: TEApplicationGroups Read GetAppGroups;
+      Property AppGroupTemplates: TEApplicationGroups Read GetAppGroupTemplates;
       Property Parameters: TEParameters Read GetParameters;
       Property Connections: TEConnections Read GetConnections;
       Property ParentFolder: String Read FParentFolder;
@@ -245,7 +248,7 @@ Uses
    ESoft.Launcher.UI.ClipboardBrowser;
 
 Const
-   cApplication_Version = 1013;
+   cApplication_Version = 1014;
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -413,6 +416,7 @@ Begin
    EFreeAndNil(FDisplayLabels);
    EFreeAndNil(FConnections);
    EFreeAndNil(FClipboardItems);
+   EFreeAndNil(FTemplateGroups);
 
    If Assigned(FParameters) Then
    Begin
@@ -440,6 +444,17 @@ Begin
    End;
 
    Result := FAppGroups;
+End;
+
+Function TFormMDIMain.GetAppGroupTemplates: TEApplicationGroups;
+Begin
+   If Not Assigned(FTemplateGroups) Then
+   Begin
+      FTemplateGroups := TEApplicationGroups.Create;
+      FTemplateGroups.LoadData(ParentFolder + cTemplateGroup_INI);
+   End;
+
+   Result := FTemplateGroups;
 End;
 
 Function TFormMDIMain.GetClipboardItems: TEClipboardItems;
@@ -990,10 +1005,9 @@ End;
 Procedure TFormMDIMain.ReloadFromIni;
 Begin
    LoadConfig;
-   If Assigned(FParameters) Then
-      FreeAndNil(FParameters);
-   If Assigned(FAppGroups) Then
-      FreeAndNil(FAppGroups);
+   EFreeAndNil(FParameters);
+   EFreeAndNil(FAppGroups);
+   EFreeAndNil(FTemplateGroups);
    UpdateApplicationList;
 End;
 

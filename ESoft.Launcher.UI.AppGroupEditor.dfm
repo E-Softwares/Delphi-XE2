@@ -463,5 +463,36 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Caption = ' Skip Recent'
       TabOrder = 12
     end
+    object btnTemplate: TButton
+      Left = 17
+      Top = 362
+      Width = 90
+      Height = 25
+      Caption = 'Template'
+      DropDownMenu = PopupMenuTemplate
+      ImageIndex = 9
+      Images = FormMDIMain.ImageList_20
+      Style = bsSplitButton
+      TabOrder = 13
+    end
+  end
+  object PopupMenuTemplate: TPopupMenu
+    AutoHotkeys = maManual
+    Images = FormMDIMain.ImageList_20
+    Left = 120
+    Top = 360
+    object PMItemLoadTemplate: TMenuItem
+      Caption = 'Load'
+      ImageIndex = 19
+    end
+    object PMItemDeleteTemplate: TMenuItem
+      Caption = 'Delete'
+      ImageIndex = 4
+    end
+    object PMItemSaveTemplate: TMenuItem
+      Caption = 'Save'
+      ImageIndex = 20
+      OnClick = PMItemSaveTemplateClick
+    end
   end
 end

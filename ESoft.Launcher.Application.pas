@@ -165,6 +165,7 @@ Type
 
       Procedure LoadData(Const aFileName: String);
       Procedure SaveData(Const aFileName: String);
+      Function DeleteGroup(Const aFileName, aGroupName: String): Boolean;
       Function AddItem(Const aName: String = ''): TEApplicationGroup;
    End;
 
@@ -440,6 +441,24 @@ Begin
    Inherited Create([doOwnsValues]);
 
    FIsLoaded := False;
+End;
+
+Function TEApplicationGroups.DeleteGroup(const aFileName, aGroupName: String): Boolean;
+Var
+   varIniFile: TIniFile;
+Begin
+   Result := False;
+   varIniFile := TIniFile.Create(aFileName);
+   Try
+      If Not varIniFile.SectionExists(aGroupName) Then
+         Exit;
+
+      Remove(aGroupName);
+      varIniFile.EraseSection(aGroupName);
+      Result := True;
+   Finally
+      varIniFile.Free;
+   End;
 End;
 
 Procedure TEApplicationGroups.LoadData(Const aFileName: String);

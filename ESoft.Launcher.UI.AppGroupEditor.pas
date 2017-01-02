@@ -13,6 +13,10 @@ Uses
    System.SysUtils,
    System.Variants,
    System.Classes,
+   System.Types,
+   IniFiles,
+   TypInfo,
+   Generics.Collections,
    Vcl.Graphics,
    Vcl.Controls,
    Vcl.Forms,
@@ -22,7 +26,8 @@ Uses
    Vcl.FileCtrl,
    ESoft.Launcher.Application,
    Vcl.Buttons,
-   Vcl.Samples.Spin;
+   Vcl.Samples.Spin, 
+   Vcl.Menus;
 
 Type
    TFormAppGroupEditor = Class(TForm)
@@ -61,6 +66,11 @@ Type
       sEdtCurrBranch: TSpinEdit;
       chkCreateBranchFolder: TCheckBox;
       chkSkipRecent: TCheckBox;
+      btnTemplate: TButton;
+      PopupMenuTemplate: TPopupMenu;
+      PMItemSaveTemplate: TMenuItem;
+      PMItemDeleteTemplate: TMenuItem;
+      PMItemLoadTemplate: TMenuItem;
       Procedure sBtnBrowseAppSourceClick(Sender: TObject);
       Procedure btnOKClick(Sender: TObject);
       Procedure FormActivate(Sender: TObject);
@@ -75,6 +85,7 @@ Type
       procedure edtExeNameChange(Sender: TObject);
       procedure edtAppDestChange(Sender: TObject);
       procedure edtFileMaskChange(Sender: TObject);
+      Procedure PMItemSaveTemplateClick(Sender: TObject);
    Private
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
@@ -83,12 +94,17 @@ Type
       FInitialized: Boolean;
       FUpdateFileMakWithName: Boolean;
       FAppGroup: TEApplicationGroup;
+
+      Procedure AssignGroup(Const aAppGroup: TEApplicationGroup);
+      Procedure ReloadTemplatesMenu;
+      Procedure TemplateLoadClick(aSender: TObject);
+      Procedure TemplateDeleteClick(aSender: TObject);
    Public
       { Public declarations }
       Constructor Create(aOwner: TComponent; Const aAppGroup: TEApplicationGroup = Nil); Reintroduce;
 
       Class Function CreatGroupFromFile(Const aFileName: String = ''): TModalResult;
-      Procedure LoadData;
+      Procedure LoadData(Const aAppGroup: TEApplicationGroup; Const aIsTemplate: Boolean = False);
 
    Published
       Property AppGroup: TEApplicationGroup Read FAppGroup;
@@ -131,26 +147,8 @@ Begin
          End;
       End;
    End;
-   AppGroup.DisplayLabel := FormMDIMain.DisplayLabels.AddText(cbDisplayLabel.Text);
-   AppGroup.FixedParameter := cbFixedParams.Text;
-   AppGroup.ExecutableName := edtExeName.Text;
-   AppGroup.Name := edtGroupName.Text;
-   AppGroup.SourceFolder := edtAppSource.Text;
-   AppGroup.DestFolder := edtAppDest.Text;
-   AppGroup.FileMask := edtFileMask.Text;
-   AppGroup.CreateFolder := chkCreateFolder.Enabled And chkCreateFolder.Checked;
-   AppGroup.SkipFromRecent := chkSkipRecent.Checked;
-   AppGroup.GroupType := cbGroupType.ItemIndex;
-   AppGroup.IsMajorBranching := chkMajor.Checked;
-   AppGroup.IsMinorBranching := chkMinor.Checked;
-   AppGroup.IsReleaseBranching := chkRelease.Checked;
-   AppGroup.BranchingPrefix := edtPrefix.Text;
-   AppGroup.BranchingSufix := edtSufix.Text;
-   AppGroup.MainBranch := sEdtMainBranch.Value;
-   AppGroup.NoOfBuilds := sEdtNoOfBuilds.Value;
-   AppGroup.CurrentBranch := sEdtCurrBranch.Value;
-   AppGroup.CreateBranchFolder := chkCreateBranchFolder.Checked;
 
+   AssignGroup(AppGroup);
    AppGroup.SaveData(FormMDIMain.ParentFolder + cGroup_INI);
    ModalResult := mrOk;
 End;
@@ -298,7 +296,7 @@ Begin
    Begin
       FInitialized := True;
       If Assigned(FAppGroup) Then
-         LoadData;
+         LoadData(AppGroup);
    End;
 End;
 
@@ -308,31 +306,136 @@ Begin
    FTempExecutable := edtExeName.Text;
    FTempDestFolder := edtAppDest.Text;
    FTempFileMask := edtFileMask.Text;
+   ReloadTemplatesMenu;
 End;
 
-Procedure TFormAppGroupEditor.LoadData;
+Procedure TFormAppGroupEditor.LoadData(Const aAppGroup: TEApplicationGroup; Const aIsTemplate: Boolean);
+
+   Function _AssignValue(Const aControl: TWinControl; Const aValue: String): Boolean;
+   Begin
+      Result := Not (aIsTemplate And (Trim(aValue) = ''));
+      If Result Then
+         SetPropValue(aControl, 'Text', aValue);
+   End;
+
 Begin
-   cbDisplayLabel.ItemIndex := cbDisplayLabel.Items.IndexOf(AppGroup.DisplayLabel);
-   cbFixedParams.Text := AppGroup.FixedParameter;
-   edtExeName.Text := AppGroup.ExecutableName;
-   edtGroupName.Text := AppGroup.Name;
-   edtAppSource.Text := AppGroup.SourceFolder;
-   edtAppDest.Text := AppGroup.DestFolder;
-   edtFileMask.Text := AppGroup.FileMask;
-   chkCreateFolder.Checked := AppGroup.CreateFolder;
-   chkSkipRecent.Checked := AppGroup.SkipFromRecent;
-   cbGroupType.ItemIndex := AppGroup.GroupType;
-   chkMajor.Checked := AppGroup.IsMajorBranching;
-   chkMinor.Checked := AppGroup.IsMinorBranching;
-   chkRelease.Checked := AppGroup.IsReleaseBranching;
-   edtPrefix.Text := AppGroup.BranchingPrefix;
-   edtSufix.Text := AppGroup.BranchingSufix;
-   sEdtMainBranch.Value := AppGroup.MainBranch;
-   sEdtNoOfBuilds.Value := AppGroup.NoOfBuilds;
-   sEdtCurrBranch.Value := AppGroup.CurrentBranch;
-   chkCreateBranchFolder.Checked := AppGroup.CreateBranchFolder;
+   If Not aIsTemplate Then
+   Begin
+      edtGroupName.Text := aAppGroup.Name;
+   End;
+
+   With aAppGroup Do
+   Begin
+      _AssignValue(cbFixedParams, FixedParameter);
+      _AssignValue(edtExeName, ExecutableName);
+      _AssignValue(edtAppSource, SourceFolder);
+      _AssignValue(edtAppDest, DestFolder);
+      _AssignValue(edtFileMask, FileMask);
+      _AssignValue(edtPrefix, BranchingPrefix);
+      _AssignValue(edtSufix, BranchingSufix);
+      _AssignValue(cbDisplayLabel, DisplayLabel);
+   End;
+   cbGroupType.ItemIndex := aAppGroup.GroupType;
+
+   chkCreateFolder.Checked := aAppGroup.CreateFolder;
+   chkSkipRecent.Checked := aAppGroup.SkipFromRecent;
+   chkMajor.Checked := aAppGroup.IsMajorBranching;
+   chkMinor.Checked := aAppGroup.IsMinorBranching;
+   chkRelease.Checked := aAppGroup.IsReleaseBranching;
+   chkCreateBranchFolder.Checked := aAppGroup.CreateBranchFolder;
+
+   sEdtMainBranch.Value := aAppGroup.MainBranch;
+   sEdtNoOfBuilds.Value := aAppGroup.NoOfBuilds;
+   sEdtCurrBranch.Value := aAppGroup.CurrentBranch;
 
    cbGroupTypeChange(Nil);
+End;
+
+Procedure TFormAppGroupEditor.PMItemSaveTemplateClick(Sender: TObject);
+var
+   varTemplate: TEApplicationGroup;
+   sTemplateName: String;
+Begin
+   While True Do
+   Begin
+      sTemplateName := edtGroupName.Text;
+      If Not InputQuery('Save Template', 'Name', sTemplateName) Then
+         Exit;
+
+      If Trim(sTemplateName) = '' Then
+      Begin
+         MessageDlg('Name cannot be empty', mtError, [mbOK], 0);
+         Continue;
+      End
+      Else
+      Begin
+         Try
+            varTemplate := FormMDIMain.AppGroupTemplates.AddItem(sTemplateName);
+         Except
+            MessageDlg('A template with same name already exist.', mtError, [mbOK], 0);
+            Continue;
+         End;
+      End;
+      Break;
+   End;
+
+   Assert(Assigned(varTemplate));
+   AssignGroup(varTemplate);
+   // Overwrite the name with template name { Ajmal }
+   varTemplate.Name := sTemplateName;
+   varTemplate.SaveData(FormMDIMain.ParentFolder + cTemplateGroup_INI);
+   ReloadTemplatesMenu;
+End;
+
+Procedure TFormAppGroupEditor.ReloadTemplatesMenu;
+
+   Function _CreateMenuItem(Const aName: String; Const aClickEvent: TNotifyEvent): TMenuItem;
+   Begin
+      Result := PopupMenuTemplate.CreateMenuItem;
+      Result.Caption := aName;
+      Result.Tag := NativeInt(FormMDIMain.AppGroupTemplates[aName]);
+      Result.OnClick := aClickEvent;
+   End;
+
+var
+   sTempGrpName: String;
+   varMenuItem: TMenuItem;
+   varTempGrpNames: TArray<String>;
+Begin
+   varTempGrpNames := FormMDIMain.AppGroupTemplates.Keys.ToArray;
+   TArray.Sort<String>(varTempGrpNames);
+
+   PMItemLoadTemplate.Clear;
+   PMItemDeleteTemplate.Clear;
+   For sTempGrpName In varTempGrpNames Do
+   Begin
+      PMItemLoadTemplate.Add(_CreateMenuItem(sTempGrpName, TemplateLoadClick));
+      PMItemDeleteTemplate.Add(_CreateMenuItem(sTempGrpName, TemplateDeleteClick));
+   End;
+End;
+
+Procedure TFormAppGroupEditor.AssignGroup(const aAppGroup: TEApplicationGroup);
+Begin
+   aAppGroup.DisplayLabel := FormMDIMain.DisplayLabels.AddText(cbDisplayLabel.Text);
+   aAppGroup.FixedParameter := cbFixedParams.Text;
+   aAppGroup.ExecutableName := edtExeName.Text;
+   aAppGroup.Name := edtGroupName.Text;
+   aAppGroup.SourceFolder := edtAppSource.Text;
+   aAppGroup.DestFolder := edtAppDest.Text;
+   aAppGroup.FileMask := edtFileMask.Text;
+   aAppGroup.CreateFolder := chkCreateFolder.Enabled And chkCreateFolder.Checked;
+   aAppGroup.SkipFromRecent := chkSkipRecent.Checked;
+   aAppGroup.GroupType := cbGroupType.ItemIndex;
+
+   aAppGroup.IsMajorBranching := chkMajor.Checked;
+   aAppGroup.IsMinorBranching := chkMinor.Checked;
+   aAppGroup.IsReleaseBranching := chkRelease.Checked;
+   aAppGroup.BranchingPrefix := edtPrefix.Text;
+   aAppGroup.BranchingSufix := edtSufix.Text;
+   aAppGroup.MainBranch := sEdtMainBranch.Value;
+   aAppGroup.CurrentBranch := sEdtCurrBranch.Value;
+   aAppGroup.NoOfBuilds := sEdtNoOfBuilds.Value;
+   aAppGroup.CreateBranchFolder := chkCreateBranchFolder.Checked;
 End;
 
 Procedure TFormAppGroupEditor.sBtnBrowseAppSourceClick(Sender: TObject);
@@ -350,6 +453,27 @@ Begin
       Else If Sender = sBtnBrowseAppDest Then
          edtAppDest.Text := sPath;
    End;
+End;
+
+procedure TFormAppGroupEditor.TemplateDeleteClick(aSender: TObject);
+var
+   varMenuItem: TMenuItem Absolute aSender;
+begin
+   If MessageDlg('Are you sure you want to delete ' + varMenuItem.Caption, mtConfirmation, [mbYes, mbNo], 0, mbNo) = mrNo Then
+      Exit;
+
+   FormMDIMain.AppGroupTemplates.DeleteGroup(FormMDIMain.ParentFolder + cTemplateGroup_INI, varMenuItem.Caption);
+   ReloadTemplatesMenu;
+end;
+
+Procedure TFormAppGroupEditor.TemplateLoadClick(aSender: TObject);
+var
+   varMenuItem: TMenuItem Absolute aSender;
+   varTempGroup: TEApplicationGroup;
+Begin
+   varTempGroup := Pointer(varMenuItem.Tag);
+   If Assigned(varTempGroup) Then
+      LoadData(varTempGroup, True);
 End;
 
 { hTStringList }
