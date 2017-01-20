@@ -20,10 +20,17 @@ Uses
 Type
    IEApplication = Interface
       Function GetActualName: String;
+      Function GetISFixedParameter: Boolean;
+      Function GetFixedParameter: String;
+      Function GetLastUsedParamName: String;
+      procedure SetLastUsedParamName(const aValue: String);
       Function RunExecutable(aParameter: String = ''): Boolean;
       Function UnZip: Boolean;
 
       Property ActualName: String Read GetActualName;
+      Property ISFixedParameter: Boolean Read GetISFixedParameter;
+      Property FixedParameter: String Read GetFixedParameter;
+      Property LastUsedParamName: String Read GetLastUsedParamName Write SetLastUsedParamName;
    End;
 
    TERecentItems = Class; // Forward declaration { Ajmal }
@@ -39,6 +46,10 @@ Type
 
       Procedure OnParamChange(aSender: TObject);
       Function GetActualName: String;
+      Function GetISFixedParameter: Boolean;
+      Function GetFixedParameter: String;
+      Function GetLastUsedParamName: String;
+      procedure SetLastUsedParamName(const aValue: String);
       Function GetIcon: TIcon;
       Function GetParameter: TStringList;
    Public
@@ -101,6 +112,12 @@ Begin
    Result := Name;
 End;
 
+Function TERecentItem.GetFixedParameter: String;
+Begin
+   // For recent items, Parameters are fixed always from the previous used list. { Ajmal }
+   Result := '';
+End;
+
 Function TERecentItem.GetIcon: TIcon;
 Var
    sFileName: String;
@@ -122,6 +139,18 @@ Begin
       EFreeAndNil(FIcon);
       // Do nothing, it's not mandatory to have icon { Ajmal }
    End;
+End;
+
+Function TERecentItem.GetISFixedParameter: Boolean;
+Begin
+   // For recent items, Parameters are fixed always from the previous used list. { Ajmal }
+   Result := True;
+End;
+
+Function TERecentItem.GetLastUsedParamName: String;
+Begin
+   // For recent items, Parameters are fixed always from the previous used list. { Ajmal }
+   Result := '';
 End;
 
 Function TERecentItem.GetParameter: TStringList;
@@ -154,6 +183,11 @@ Begin
       aParameter := Parameter[0];
 
    FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder, False);
+End;
+
+Procedure TERecentItem.SetLastUsedParamName(const aValue: String);
+Begin
+   // For recent items, Parameters are fixed always from the previous used list. { Ajmal }
 End;
 
 Function TERecentItem.UnZip: Boolean;

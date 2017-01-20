@@ -29,13 +29,16 @@ Type
       chkConnectionParam: TCheckBox;
       cbConnections: TComboBox;
       Label2: TLabel;
+      cbCategory: TComboBox;
+      Label7: TLabel;
       Procedure chkConnectionParamClick(Sender: TObject);
       Procedure btnOKClick(Sender: TObject);
       Procedure edtParamNameKeyPress(Sender: TObject; Var Key: Char);
       Procedure edtParamNameRightButtonClick(Sender: TObject);
       Procedure FormActivate(Sender: TObject);
       Procedure cbConnectionsExit(Sender: TObject);
-
+      procedure cbCategoryKeyPress(Sender: TObject; var Key: Char);
+      procedure FormCreate(Sender: TObject);
    Private
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
@@ -87,6 +90,10 @@ Begin
    End;
    Parameter.Name := edtParamName.Text;
    Parameter.Parameter := edtParameter.Text;
+   If chkConnectionParam.Checked Then
+      Parameter.ParamCategory := cbCategory.Text
+   Else
+      Parameter.ParamCategory := '';
    Case iParameterType Of
       cParamTypeConnection:
          Begin
@@ -110,10 +117,17 @@ Begin
    End;
 End;
 
+procedure TFormParamEditor.cbCategoryKeyPress(Sender: TObject; var Key: Char);
+begin
+   If Not(key In ['A' .. 'Z', 'a' .. 'z', '0' .. '9', '_', ' ', #46, #8]) Then
+      Abort;
+end;
+
 Procedure TFormParamEditor.chkConnectionParamClick(Sender: TObject);
 Begin
    chkDefaultInclude.Enabled := Not chkConnectionParam.Checked;
    cbConnections.Enabled := chkConnectionParam.Checked;
+   cbCategory.Enabled := chkConnectionParam.Checked;
 End;
 
 Constructor TFormParamEditor.Create(aOwner: TComponent; Const aParameter: TEParameterBase);
@@ -150,6 +164,11 @@ Begin
    End;
 End;
 
+procedure TFormParamEditor.FormCreate(Sender: TObject);
+begin
+   cbCategory.Items := FormMDIMain.ParamCategories;
+end;
+
 Procedure TFormParamEditor.LoadData;
 Begin
    chkConnectionParamClick(Nil);
@@ -157,6 +176,7 @@ Begin
    edtParamName.Text := Parameter.Name;
    edtParameter.Text := Parameter.Parameter;
    chkConnectionParam.Checked := Parameter Is TEConnectionParameter;
+   cbCategory.Text := Parameter.ParamCategory;
    If Not chkConnectionParam.Checked Then
       chkDefaultInclude.Checked := TEAdditionalParameter(Parameter).DefaultInclude
    Else

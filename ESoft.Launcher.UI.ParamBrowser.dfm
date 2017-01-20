@@ -37,7 +37,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 10
       Top = 5
       Width = 37
-      Height = 31
+      Height = 28
       Margins.Left = 8
       Align = alLeft
       Caption = 'Search'
@@ -52,13 +52,13 @@ object FormParameterBrowser: TFormParameterBrowser
     object edtFilter: TButtonedEdit
       AlignWithMargins = True
       Left = 55
-      Top = 8
-      Width = 574
+      Top = 9
+      Width = 418
       Height = 21
       Margins.Left = 5
-      Margins.Top = 6
+      Margins.Top = 7
       Margins.Right = 8
-      Margins.Bottom = 7
+      Margins.Bottom = 6
       Align = alClient
       RightButton.ImageIndex = 24
       RightButton.Visible = True
@@ -83,6 +83,19 @@ object FormParameterBrowser: TFormParameterBrowser
       TabStop = False
       OnClick = btnAdditionalParametersClick
     end
+    object cbCategories: TComboBox
+      AlignWithMargins = True
+      Left = 484
+      Top = 9
+      Width = 145
+      Height = 21
+      Margins.Top = 7
+      Margins.Right = 8
+      Align = alRight
+      Style = csDropDownList
+      TabOrder = 2
+      OnChange = cbCategoriesChange
+    end
   end
   object Panel1: TPanel
     AlignWithMargins = True
@@ -101,7 +114,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 5
       Top = 5
       Width = 106
-      Height = 31
+      Height = 25
       Align = alLeft
       Caption = 'Selected Parameter '
       Font.Charset = ANSI_CHARSET
@@ -115,7 +128,7 @@ object FormParameterBrowser: TFormParameterBrowser
     object lblParameter: TLabel
       AlignWithMargins = True
       Left = 5
-      Top = 39
+      Top = 36
       Width = 678
       Height = 13
       Align = alBottom
@@ -126,7 +139,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 603
       Top = 5
       Width = 75
-      Height = 28
+      Height = 25
       Margins.Right = 8
       Align = alRight
       Caption = 'Cancel'
@@ -139,7 +152,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 517
       Top = 5
       Width = 75
-      Height = 28
+      Height = 25
       Margins.Right = 8
       Align = alRight
       Caption = '  Ok'
@@ -155,7 +168,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 117
       Top = 7
       Width = 384
-      Height = 24
+      Height = 21
       Margins.Top = 5
       Margins.Right = 13
       Margins.Bottom = 5
@@ -281,6 +294,10 @@ object FormParameterBrowser: TFormParameterBrowser
     end
     object ClntDSetParametersData: TIntegerField
       FieldName = 'Data'
+    end
+    object ClntDSetParametersParamCategory: TStringField
+      FieldName = 'ParamCategory'
+      Size = 500
     end
   end
   object PopupMenuAdditionalParameters: TPopupMenu

@@ -237,12 +237,14 @@ object FormAppGroupEditor: TFormAppGroupEditor
       OnRightButtonClick = edtAppSourceRightButtonClick
     end
     object cbFixedParams: TComboBox
-      Left = 100
+      Left = 121
       Top = 177
-      Width = 150
+      Width = 129
       Height = 21
+      Style = csDropDownList
       TabOrder = 8
       TextHint = 'Fixed Prameter'
+      OnSelect = cbFixedParamsSelect
     end
     object chkCreateFolder: TCheckBox
       Left = 264
@@ -474,6 +476,14 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Images = FormMDIMain.ImageList_20
       Style = bsSplitButton
       TabOrder = 13
+    end
+    object chkParameter: TCheckBox
+      Left = 100
+      Top = 179
+      Width = 15
+      Height = 17
+      TabOrder = 14
+      OnClick = chkParameterClick
     end
   end
   object PopupMenuTemplate: TPopupMenu

@@ -34,6 +34,7 @@ Uses
 
 Const
    cParameterPick = '<ePick>';
+   cParameterAll = '<eAll>';
    cInvalidBuildNumber = -1;
 
    cGroupType_Application = 0;
@@ -54,8 +55,13 @@ Type
       FOwner: TEApplicationGroup;
       FFileName: String;
       FVersionName: TStringDynArray;
+      FLastUsedParamName: String; // This we reset with application restart { Ajmal }
 
       Function GetActualName: String;
+      Function GetISFixedParameter: Boolean;
+      Function GetFixedParameter: String;
+      Function GetLastUsedParamName: String;
+      procedure SetLastUsedParamName(const aValue: String);
       Function GetFileName(aType: eTAppFile): String;
       Procedure SetOwner(Const Value: TEApplicationGroup);
 
@@ -76,23 +82,24 @@ Type
       Function MinorVersionName: String;
       Function ReleaseVersionName: String;
       Function BuildNumber: Integer;
-
    Published
       Property Owner: TEApplicationGroup Read FOwner Write SetOwner;
       Property Name: String Index eafName Read GetFileName;
       Property Extension: String Index eafExtension Read GetFileName;
       Property FileName: String Index eafFileName Read GetFileName Write FFileName;
+      Property IsFixedParameter: Boolean Read GetISFixedParameter;
    End;
 
    TEApplications = Class(TObjectList<TEApplication>);
 
    TEApplicationGroup = Class(TEApplications, IEApplication)
-   Private
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
       FGroupType: Integer;
       FFixedParameter, FExecutableName, FName: String;
+      FLastUsedParamName: String;
+      FISFixedParameter: Boolean;
       FSourceFolder: String;
       FDestFolder: String;
       FFileMask: String;
@@ -105,6 +112,10 @@ Type
 
       Function GetIsApplication: Boolean;
       Function GetActualName: String;
+      Function GetISFixedParameter: Boolean;
+      Function GetFixedParameter: String;
+      Function GetLastUsedParamName: String;
+      procedure SetLastUsedParamName(const aValue: String);
       Procedure SetSourceFolder(Const Value: String);
       Procedure SetDestFolder(Const Value: String);
       Procedure SetFileMask(Const Value: String);
@@ -135,8 +146,10 @@ Type
       Property DestFolder: String Read FDestFolder Write SetDestFolder;
       Property SourceFolder: String Read FSourceFolder Write SetSourceFolder;
       Property CreateFolder: Boolean Read FCreateFolder Write FCreateFolder;
-      property SkipFromRecent: Boolean Read FSkipFromRecent Write FSkipFromRecent;
-      Property FixedParameter: String Read FFixedParameter Write FFixedParameter;
+      Property SkipFromRecent: Boolean Read FSkipFromRecent Write FSkipFromRecent;
+      Property FixedParameter: String Read GetFixedParameter Write FFixedParameter;
+      Property ISFixedParameter: Boolean Read GetISFixedParameter Write FISFixedParameter;
+      Property LastUsedParamName: String Read GetLastUsedParamName Write SetLastUsedParamName;
       Property IsApplication: Boolean Read GetIsApplication;
       Property DisplayLabel: String Read FDisplayLabel Write FDisplayLabel;
       Property Icon: TIcon Read GetIcon;
@@ -184,7 +197,9 @@ Const
    cBRANCH_BUILD_VERSION = 3;
    cBRANCH_VERSION_SEPERATOR = '.';
 
+   cGroupLastUsedParam = 'Last_Used_Param';
    cGroupFixedParam = 'Fixed_Param';
+   cGroupIsFixedParam = 'Is_Fixed_Param';
    cGroupExeName = 'Executable_Name';
    cGroupFileMask = 'File_Mask';
    cGroupSourceFolder = 'Source_Folder';
@@ -242,6 +257,11 @@ Begin
    Result := Name;
 End;
 
+function TEApplicationGroup.GetFixedParameter: String;
+begin
+   Result := FFixedParameter;
+end;
+
 Function TEApplicationGroup.GetIcon: TIcon;
 Var
    sFileName: String;
@@ -274,6 +294,16 @@ Begin
    Result := GroupType = cGroupType_Application;
 End;
 
+function TEApplicationGroup.GetISFixedParameter: Boolean;
+begin
+   Result := FISFixedParameter;
+end;
+
+Function TEApplicationGroup.GetLastUsedParamName: String;
+Begin
+   Result := FLastUsedParamName;
+End;
+
 Procedure TEApplicationGroup.LoadApplications;
 Var
    varSearch: TSearchRec;
@@ -298,6 +328,7 @@ Begin
    varIniFile := TIniFile.Create(aFileName);
    Try
       FixedParameter := varIniFile.ReadString(Name, cGroupFixedParam, '');
+      ISFixedParameter := varIniFile.ReadBool(Name, cGroupIsFixedParam, (FixedParameter <> cParameterPick));
       ExecutableName := varIniFile.ReadString(Name, cGroupExeName, '');
       FileMask := varIniFile.ReadString(Name, cGroupFileMask, '');
       SourceFolder := varIniFile.ReadString(Name, cGroupSourceFolder, '');
@@ -339,7 +370,7 @@ Begin
    If Not IsApplication Then
       Raise Exception.Create('Execution failed. Group is not created as application.');
 
-   If FixedParameter <> cParameterPick Then
+   If ISFixedParameter Then
       aParameter := aParameter + ' ' + FixedParameter;
 
    FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder, SkipFromRecent);
@@ -352,6 +383,7 @@ Begin
    varIniFile := TIniFile.Create(aFileName);
    Try
       varIniFile.WriteString(Name, cGroupFixedParam, FixedParameter);
+      varIniFile.WriteBool(Name, cGroupIsFixedParam, ISFixedParameter);
       varIniFile.WriteString(Name, cGroupExeName, ExecutableName);
       varIniFile.WriteString(Name, cGroupFileMask, FileMask);
       varIniFile.WriteString(Name, cGroupSourceFolder, SourceFolder);
@@ -388,6 +420,21 @@ End;
 Procedure TEApplicationGroup.SetFileMask(Const Value: String);
 Begin
    FFileMask := Value;
+End;
+
+Procedure TEApplicationGroup.SetLastUsedParamName(const aValue: String);
+Var
+   varIniFile: TIniFile;
+Begin
+   FLastUsedParamName := aValue;
+
+   // We need to write this param immediately { Ajmal }
+   varIniFile := TIniFile.Create(FormMDIMain.ParentFolder + cGroup_INI);
+   Try
+      varIniFile.WriteString(Name, cGroupLastUsedParam, LastUsedParamName);
+   Finally
+      varIniFile.Free;
+   End;
 End;
 
 Procedure TEApplicationGroup.SetSourceFolder(Const Value: String);
@@ -528,6 +575,7 @@ Begin
    Assert(aOwner <> Nil, 'Owner cannot be nil');
    Owner := aOwner;
    SetLength(FVersionName, 0);
+   FLastUsedParamName := '';
 End;
 
 Function TEApplication.GetActualName: String;
@@ -545,6 +593,21 @@ Begin
       eafExtension:
          Result := ExtractFileExt(FFileName);
    End;
+End;
+
+function TEApplication.GetFixedParameter: String;
+begin
+   Result := Owner.FixedParameter;
+end;
+
+function TEApplication.GetISFixedParameter: Boolean;
+begin
+   Result := Owner.ISFixedParameter;
+end;
+
+Function TEApplication.GetLastUsedParamName: String;
+Begin
+   Result := FLastUsedParamName;
 End;
 
 Function TEApplication.MajorVersionName: String;
@@ -601,7 +664,7 @@ var
    sFileName: String;
    sTargetFolder: String;
 Begin
-   If Owner.FixedParameter <> cParameterPick Then
+   If ISFixedParameter Then
       aParameter := aParameter + ' ' + Owner.FixedParameter;
 
    sFileName := Owner.ExecutableName;
@@ -615,6 +678,13 @@ Begin
 
    FormMDIMain.RunApplication(Name, sFileName, aParameter, sTargetFolder, Owner.SkipFromRecent);
 End;
+
+procedure TEApplication.SetLastUsedParamName(const aValue: String);
+begin
+   FLastUsedParamName := aValue;
+   // We need to store this into group also { Ajmal }
+   Owner.LastUsedParamName := aValue;
+end;
 
 Procedure TEApplication.SetOwner(Const Value: TEApplicationGroup);
 Begin

@@ -182,6 +182,7 @@ Type
       FParentFolder: String;
       FConnections: TEConnections;
       FDisplayLabels: TStringList;
+      FParamCategories: TStringList;
       FRecentItems: TERecentItems;
       FClipboardItems: TEClipboardItems;
       FCurrentProgressMessage: String;
@@ -206,6 +207,7 @@ Type
       Function GetClipboardItems: TEClipboardItems;
       Function GetImageIndexForFileExt(Const aExtension: String): Integer;
       Function GetAppGroupTemplates: TEApplicationGroups;
+      Function GetParamCategories: TStringList;
    protected
       procedure WndProc(var aMessage: TMessage); override;
       procedure WMHotKey(var Msg: TWMHotKey); Message WM_HOTKEY;
@@ -219,6 +221,7 @@ Type
       Procedure UpdateApplicationList;
       Procedure ReloadFromIni;
       Procedure RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String; aSkipFromRecent: Boolean);
+      procedure LoadParamCategories;
 
       Property RecentItems: TERecentItems Read GetRecentItems;
    Published
@@ -228,8 +231,8 @@ Type
       Property Connections: TEConnections Read GetConnections;
       Property ParentFolder: String Read FParentFolder;
       Property IsRunAsAdmin: Boolean Read GetRunAsAdmin Write SetRunAsAdmin;
-      Property LastUsedParamCode: String Read FLastUsedParamCode Write FLastUsedParamCode;
       Property DisplayLabels: TStringList Read GetDisplayLabels;
+      Property ParamCategories: TStringList Read GetParamCategories;
       Property ClipboardItems: TEClipboardItems Read GetClipboardItems;
    End;
 
@@ -281,7 +284,6 @@ Const
    cConfigFileName = 'FileName';
    cConfigStartMinimized = 'StartMinimized';
    cConfigRunAsAdmin = 'RunAsAdmin';
-   cConfigLastUsedParam = 'LastUsedParam';
    cConfigAutoBackUpOnExit = 'AutoBackUpOnExit';
    cConfigHotKey = 'HotKey';
    cConfigDefaultHotKeyText = 'Alt+Q';
@@ -414,6 +416,7 @@ Begin
    EFreeAndNil(FFixedMenuItems);
    EFreeAndNil(FRecentItems);
    EFreeAndNil(FDisplayLabels);
+   EFreeAndNil(FParamCategories);
    EFreeAndNil(FConnections);
    EFreeAndNil(FClipboardItems);
    EFreeAndNil(FTemplateGroups);
@@ -501,12 +504,37 @@ begin
       Result := cIMG_FILE_LINK;
 end;
 
+Function TFormMDIMain.GetParamCategories: TStringList;
+Begin
+   If Not Assigned(FParamCategories) Then
+   Begin
+      FParamCategories := TStringList.Create;
+      FParamCategories.Duplicates := dupIgnore;
+      FParamCategories.Sorted := True;
+      LoadParamCategories;      
+   End;
+   Result := FParamCategories;
+End;
+
+Procedure TFormMDIMain.LoadParamCategories;
+var
+   varParameter: TEParameterBase;
+Begin
+   ParamCategories.Clear;
+   For varParameter In Parameters.Values Do
+   Begin
+     If Trim(varParameter.ParamCategory) <> '' Then
+        ParamCategories.Add(varParameter.ParamCategory);
+   End;
+End;
+
 Function TFormMDIMain.GetParameters: TEParameters;
 Begin
    If Not Assigned(FParameters) Then
    Begin
       FParameters := TEParameters.Create;
       FParameters.LoadData(ParentFolder + cParam_INI);
+      LoadParamCategories;
    End;
    Result := FParameters;
 End;
@@ -535,7 +563,6 @@ Begin
       MItemAutobackup.Checked := varIniFile.ReadBool(cConfigBasic, cConfigAutoBackUpOnExit, False);
       MItemStartMinimized.Checked := varIniFile.ReadBool(cConfigBasic, cConfigStartMinimized, True);
       IsRunAsAdmin := varIniFile.ReadBool(cConfigBasic, cConfigRunAsAdmin, False);
-      LastUsedParamCode := varIniFile.ReadString(cConfigBasic, cConfigLastUsedParam, '');
       Connections.FileName := varIniFile.ReadString(cConfigBasic, cConfigFileName, '');
       hKeyGeneral.HotKey := TextToShortCut(varIniFile.ReadString(cConfigBasic, cConfigHotKey, cConfigDefaultHotKeyText));
       sEdtRecentItemCount.Value := varIniFile.ReadInteger(cConfigBasic, cConfigRecentCount, 5);
@@ -1023,7 +1050,6 @@ Begin
       varIniFile.WriteBool(cConfigBasic, cConfigAutoBackUpOnExit, MItemAutobackup.Checked);
       varIniFile.WriteBool(cConfigBasic, cConfigStartMinimized, MItemStartMinimized.Checked);
       varIniFile.WriteBool(cConfigBasic, cConfigRunAsAdmin, IsRunAsAdmin);
-      varIniFile.WriteString(cConfigBasic, cConfigLastUsedParam, LastUsedParamCode);
       varIniFile.WriteString(cConfigBasic, cConfigHotKey, ShortCutToText(hKeyGeneral.HotKey));
       varIniFile.WriteInteger(cConfigBasic, cConfigRecentCount, sEdtRecentItemCount.Value);
       varIniFile.WriteInteger(cConfigBasic, cConfigGroupItems, cbGroupItems.ItemIndex);
@@ -1087,14 +1113,14 @@ Begin
          varRecentItem.RunExecutable(varMenu.Hint) // TERecentItem are in Popupmenu only { Ajmal }
       Else If varSelected.InheritsFrom(TEApplication) Then
       Begin
-         If varApplication.Owner.FixedParameter = cParameterPick Then
+         If Not varApplication.ISFixedParameter Then
             OpenParamBrowser(varApplication)
          Else
             varApplication.RunExecutable;
       End
       Else If varSelected.InheritsFrom(TEApplicationGroup) And varAppGroup.IsApplication Then
       Begin
-         If varAppGroup.FixedParameter = cParameterPick Then
+         If Not varAppGroup.ISFixedParameter Then
             OpenParamBrowser(varAppGroup)
          Else
             varAppGroup.RunExecutable;

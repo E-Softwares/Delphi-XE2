@@ -3,7 +3,7 @@ object FormParamEditor: TFormParamEditor
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Parameter Editor'
-  ClientHeight = 174
+  ClientHeight = 200
   ClientWidth = 371
   Color = 14871789
   Font.Charset = DEFAULT_CHARSET
@@ -15,6 +15,7 @@ object FormParamEditor: TFormParamEditor
   OldCreateOrder = False
   Position = poScreenCenter
   OnActivate = FormActivate
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object GroupBox1: TGroupBox
@@ -22,15 +23,15 @@ object FormParamEditor: TFormParamEditor
     Left = 3
     Top = 3
     Width = 365
-    Height = 168
+    Height = 194
     Align = alClient
     TabOrder = 0
     DesignSize = (
       365
-      168)
+      194)
     object Label5: TLabel
       Left = 17
-      Top = 44
+      Top = 72
       Width = 61
       Height = 13
       Caption = 'Parameter'
@@ -43,7 +44,7 @@ object FormParamEditor: TFormParamEditor
     end
     object Label1: TLabel
       Left = 17
-      Top = 17
+      Top = 45
       Width = 32
       Height = 13
       Caption = 'Name'
@@ -56,7 +57,7 @@ object FormParamEditor: TFormParamEditor
     end
     object Label2: TLabel
       Left = 17
-      Top = 94
+      Top = 122
       Width = 63
       Height = 13
       Caption = 'Connection'
@@ -67,9 +68,22 @@ object FormParamEditor: TFormParamEditor
       Font.Style = [fsBold]
       ParentFont = False
     end
+    object Label7: TLabel
+      Left = 17
+      Top = 18
+      Width = 52
+      Height = 13
+      Caption = 'Category'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
     object btnCancel: TButton
       Left = 275
-      Top = 128
+      Top = 154
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -80,7 +94,7 @@ object FormParamEditor: TFormParamEditor
     end
     object btnOK: TButton
       Left = 194
-      Top = 128
+      Top = 154
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -92,7 +106,7 @@ object FormParamEditor: TFormParamEditor
     end
     object edtParameter: TButtonedEdit
       Left = 100
-      Top = 41
+      Top = 69
       Width = 250
       Height = 21
       Images = FormMDIMain.ImageList_Ord
@@ -105,7 +119,7 @@ object FormParamEditor: TFormParamEditor
     end
     object edtParamName: TButtonedEdit
       Left = 100
-      Top = 14
+      Top = 42
       Width = 250
       Height = 21
       Images = FormMDIMain.ImageList_Ord
@@ -119,7 +133,7 @@ object FormParamEditor: TFormParamEditor
     end
     object chkDefaultInclude: TCheckBox
       Left = 246
-      Top = 68
+      Top = 96
       Width = 97
       Height = 17
       Caption = ' Default Include'
@@ -128,7 +142,7 @@ object FormParamEditor: TFormParamEditor
     end
     object chkConnectionParam: TCheckBox
       Left = 100
-      Top = 68
+      Top = 96
       Width = 130
       Height = 17
       Caption = ' Connection Parameter '
@@ -139,11 +153,19 @@ object FormParamEditor: TFormParamEditor
     end
     object cbConnections: TComboBox
       Left = 100
-      Top = 91
+      Top = 119
       Width = 250
       Height = 21
       TabOrder = 4
       OnExit = cbConnectionsExit
+    end
+    object cbCategory: TComboBox
+      Left = 100
+      Top = 15
+      Width = 250
+      Height = 21
+      TabOrder = 7
+      OnKeyPress = cbCategoryKeyPress
     end
   end
 end

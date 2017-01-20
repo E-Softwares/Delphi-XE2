@@ -5,6 +5,7 @@ Interface
 Uses
    Vcl.Controls,
    Vcl.Forms,
+   Vcl.Dialogs,
    Winapi.Messages,
    System.Classes,
    System.StrUtils,
@@ -40,8 +41,10 @@ Begin
       WM_MENUSELECT:
       Begin
          With TWMMenuSelect(aMessage) Do
+         Begin
             If (Menuflag = $FFFF) and (Menu = 0) Then
-               _Send(CM_MENUCLOSED);                  
+               _Send(CM_MENUCLOSED);
+         End;
       End;
    End;
    

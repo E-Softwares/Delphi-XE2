@@ -73,6 +73,8 @@ Type
       PopupMenuRunApp: TPopupMenu;
       PMItemRun: TMenuItem;
       PMItemRunasadministrator: TMenuItem;
+      ClntDSetParametersParamCategory: TStringField;
+      cbCategories: TComboBox;
       Procedure edtFilterKeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
       Procedure edtFilterChange(Sender: TObject);
       Procedure MItemSearchClick(Sender: TObject);
@@ -92,7 +94,8 @@ Type
       Procedure PMItemUpdateClick(Sender: TObject);
       Procedure dbGridParametersDblClick(Sender: TObject);
       Procedure PopupMenuPopup(Sender: TObject);
-   Private
+      Function HasCategory: Boolean;
+      procedure cbCategoriesChange(Sender: TObject);
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
@@ -141,9 +144,14 @@ Begin
 
    FSelectedApplication.UnZip;
    FSelectedApplication.RunExecutable(Parameter);
-   FormMDIMain.LastUsedParamCode := ClntDSetParametersParamCode.AsString;
+   FSelectedApplication.LastUsedParamName := ClntDSetParametersParamCode.AsString;
    ModalResult := mrOk;
 End;
+
+procedure TFormParameterBrowser.cbCategoriesChange(Sender: TObject);
+begin
+   edtFilterChange(Nil);
+end;
 
 Procedure TFormParameterBrowser.ClntDSetParametersAfterOpen(DataSet: TDataSet);
 Begin
@@ -194,9 +202,10 @@ End;
 Procedure TFormParameterBrowser.edtFilterChange(Sender: TObject);
 Var
    iCnt: Integer;
-   TempSearchArray: Array [0 .. 2] Of WideString;
+   TempSearchArray: Array [0 .. 3] Of WideString;
+   sCategoryFilter: String;
 Const
-   TempFieldArray: Array [0 .. 2] Of WideString = ('ParamCode', 'ParamText', 'ParamConnection');
+   TempFieldArray: Array [0 .. 3] Of WideString = ('ParamCode', 'ParamText', 'ParamConnection', 'ParamCategory');
 Begin
    For iCnt := 0 To Pred(Length(TempSearchArray)) Do
    Begin
@@ -214,6 +223,16 @@ Begin
       End;
       If StrEndsWith(Filter, 'Or ') Then
          Filter := StrSubString(3, Filter);
+         
+      If Trim(cbCategories.Text) <> cParameterAll Then
+      Begin
+         sCategoryFilter := Format('UPPER(ParamCategory) = %s', [QuotedStr(UpperCase(cbCategories.Text))]);
+         If Trim(Filter) = '' Then
+            Filter := sCategoryFilter
+         Else 
+            Filter := Format('(%s) And (%s)', [Filter, sCategoryFilter]);
+      End;
+
       Filtered := True;
    End;
 End;
@@ -263,9 +282,26 @@ Begin
    dbGridParameters.Columns[0].Title.Font.Color := clBlue;
    AddProgressbars;
    LoadParametrs;
+   
+   cbCategories.Clear;
+   cbCategories.Items.Add(cParameterAll);
+   cbCategories.Items.AddStrings(FormMDIMain.ParamCategories);
+   If HasCategory Then
+   Begin
+      cbCategories.ItemIndex := cbCategories.Items.IndexOf(FSelectedApplication.FixedParameter);
+      edtFilterChange(Nil);
+   End
+   Else 
+   Begin
+      cbCategories.ItemIndex := cbCategories.Items.IndexOf(cParameterAll);
+   End;
+
    btnOK.Enabled := Assigned(FSelectedApplication);
-   If Not ClntDSetParameters.Locate(ClntDSetParametersParamCode.FieldName, FormMDIMain.LastUsedParamCode, []) Then
-      ClntDSetParameters.First;
+   If Assigned(FSelectedApplication) Then
+   Begin
+      If Not ClntDSetParameters.Locate(ClntDSetParametersParamCode.FieldName, FSelectedApplication.LastUsedParamName, []) Then
+         ClntDSetParameters.First;
+   End
 End;
 
 Function TFormParameterBrowser.GetParameter: String;
@@ -287,6 +323,14 @@ End;
 Procedure TFormParameterBrowser.lbAdditionalParamsExit(Sender: TObject);
 Begin
    lbAdditionalParams.Hide;
+End;
+
+Function TFormParameterBrowser.HasCategory: Boolean;
+Begin
+   Result := Assigned(FSelectedApplication)
+      And (Not FSelectedApplication.ISFixedParameter)
+      And (FSelectedApplication.FixedParameter <> '')
+      And (FormMDIMain.ParamCategories.IndexOf(FSelectedApplication.FixedParameter) <> -1);
 End;
 
 Procedure TFormParameterBrowser.LoadParametrs;
@@ -313,6 +357,7 @@ Begin
          ClntDSetParametersParamCode.AsString := varParameter.Name;
          ClntDSetParametersParamText.AsString := varParameter.Parameter;
          ClntDSetParametersParamConnection.AsString := TEConnectionParameter(varParameter).Connection;
+         ClntDSetParametersParamCategory.AsString := varParameter.ParamCategory;
          ClntDSetParametersData.AsInteger := Nativeint(varParameter);
       End
       Else If varParameter Is TEAdditionalParameter Then
@@ -327,9 +372,11 @@ Begin
          PopupMenuAdditionalParameters.Items.Add(varCurrMenuItem);
       End;
    End;
+
    If ClntDSetParameters.State In [dsInsert, dsEdit] Then
       ClntDSetParameters.Post;
    ClntDSetParametersAfterScroll(Nil);
+   FormMDIMain.LoadParamCategories;
 End;
 
 Procedure TFormParameterBrowser.MItemCloseClick(Sender: TObject);
@@ -347,8 +394,8 @@ Procedure TFormParameterBrowser.PMItemAddClick(Sender: TObject);
 Begin
    FormParamEditor := TFormParamEditor.Create(Self);
    Try
-      FormParamEditor.ShowModal;
-      LoadParametrs;
+      If FormParamEditor.ShowModal = mrOk Then
+         LoadParametrs;
    Finally
       FormParamEditor.Free;
    End;
@@ -373,9 +420,12 @@ End;
 Procedure TFormParameterBrowser.PMItemEditClick(Sender: TObject);
 Begin
    FormParamEditor := TFormParamEditor.Create(Self, SelectedParameter);
-   FormParamEditor.ShowModal;
-   FormParamEditor.Free;
-   LoadParametrs;
+   Try
+      If FormParamEditor.ShowModal = mrOk Then
+         LoadParametrs;
+   Finally
+      FormParamEditor.Free;
+   End;
 End;
 
 Procedure TFormParameterBrowser.PMItemUpdateClick(Sender: TObject);

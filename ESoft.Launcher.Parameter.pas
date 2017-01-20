@@ -53,6 +53,7 @@ Type
     FParamType: Integer;
     FParameter: String;
     FName: String;
+    FCategory: String;
 
   Public
     Constructor Create; Virtual;
@@ -64,6 +65,7 @@ Type
     Property Name: String Read FName Write FName;
     Property Parameter: String Read FParameter Write FParameter;
     Property ParamType: Integer Read FParamType Write FParamType;
+    Property ParamCategory: String Read FCategory Write FCategory;
   End;
 
   TEParameters = Class(TObjectDictionary<String, TEParameterBase>)
@@ -124,6 +126,7 @@ Const
   cParamText = 'Param_Text';
   cParamConnection = 'Param_Connection';
   cParamDefaultInclude = 'Param_Default_Include';
+  cParamCategory = 'Param_Category';
 
   {TEParameterBase}
 
@@ -140,6 +143,7 @@ Begin
   Try
     Parameter := varIniFile.ReadString(Name, cParamText, '');
     ParamType := varIniFile.ReadInteger(Name, cParamType, cParamTypeInvalid);
+    ParamCategory := varIniFile.ReadString(Name, cParamCategory, '');
   Finally
     varIniFile.Free;
   End;
@@ -161,6 +165,7 @@ Begin
 
     varIniFile.WriteString(Name, cParamText, Parameter);
     varIniFile.WriteInteger(Name, cParamType, iParamType);
+    varIniFile.WriteString(Name, cParamCategory, ParamCategory);
   Finally
     varIniFile.Free;
   End;

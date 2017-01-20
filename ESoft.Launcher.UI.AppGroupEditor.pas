@@ -71,6 +71,7 @@ Type
       PMItemSaveTemplate: TMenuItem;
       PMItemDeleteTemplate: TMenuItem;
       PMItemLoadTemplate: TMenuItem;
+      chkParameter: TCheckBox;
       Procedure sBtnBrowseAppSourceClick(Sender: TObject);
       Procedure btnOKClick(Sender: TObject);
       Procedure FormActivate(Sender: TObject);
@@ -86,6 +87,8 @@ Type
       procedure edtAppDestChange(Sender: TObject);
       procedure edtFileMaskChange(Sender: TObject);
       Procedure PMItemSaveTemplateClick(Sender: TObject);
+      procedure chkParameterClick(Sender: TObject);
+      procedure cbFixedParamsSelect(Sender: TObject);
    Private
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
@@ -153,6 +156,11 @@ Begin
    ModalResult := mrOk;
 End;
 
+procedure TFormAppGroupEditor.cbFixedParamsSelect(Sender: TObject);
+begin
+   chkParameter.Checked := False;
+end;
+
 procedure TFormAppGroupEditor.cbGroupTypeChange(Sender: TObject);
 begin
    chkCreateFolder.Enabled := cbGroupType.ItemIndex = cGroupType_ZipFiles;
@@ -192,13 +200,22 @@ Begin
    chkCreateFolderClick(Nil);
 End;
 
+Procedure TFormAppGroupEditor.chkParameterClick(Sender: TObject);
+Begin
+   If chkParameter.Checked Then
+      cbFixedParams.Style := csDropDown
+   Else
+      cbFixedParams.Style := csDropDownList;
+End;
+
 Constructor TFormAppGroupEditor.Create(aOwner: TComponent; Const aAppGroup: TEApplicationGroup);
 Begin
    FInitialized := False;
    Inherited Create(aOwner);
 
    cbFixedParams.Clear;
-   cbFixedParams.Items.Add(cParameterPick);
+   cbFixedParams.Items.Add(cParameterAll);
+   cbFixedParams.Items.AddStrings(FormMDIMain.ParamCategories);
 
    FAppGroup := aAppGroup;
    edtGroupName.Enabled := Not Assigned(FAppGroup);
@@ -326,7 +343,6 @@ Begin
 
    With aAppGroup Do
    Begin
-      _AssignValue(cbFixedParams, FixedParameter);
       _AssignValue(edtExeName, ExecutableName);
       _AssignValue(edtAppSource, SourceFolder);
       _AssignValue(edtAppDest, DestFolder);
@@ -334,6 +350,12 @@ Begin
       _AssignValue(edtPrefix, BranchingPrefix);
       _AssignValue(edtSufix, BranchingSufix);
       _AssignValue(cbDisplayLabel, DisplayLabel);
+
+      chkParameter.Checked := ISFixedParameter;
+      If ISFixedParameter Then
+         _AssignValue(cbFixedParams, FixedParameter)
+      Else
+         cbFixedParams.ItemIndex := cbFixedParams.Items.IndexOf(FixedParameter);
    End;
    cbGroupType.ItemIndex := aAppGroup.GroupType;
 
@@ -418,6 +440,7 @@ Procedure TFormAppGroupEditor.AssignGroup(const aAppGroup: TEApplicationGroup);
 Begin
    aAppGroup.DisplayLabel := FormMDIMain.DisplayLabels.AddText(cbDisplayLabel.Text);
    aAppGroup.FixedParameter := cbFixedParams.Text;
+   aAppGroup.ISFixedParameter := chkParameter.Checked;
    aAppGroup.ExecutableName := edtExeName.Text;
    aAppGroup.Name := edtGroupName.Text;
    aAppGroup.SourceFolder := edtAppSource.Text;
