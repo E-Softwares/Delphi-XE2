@@ -251,7 +251,10 @@ Uses
    ESoft.Launcher.UI.ClipboardBrowser;
 
 Const
-   cApplication_Version = 1014;
+   // In the order MMmmRRBB
+   // M - Major, m - Minor, R - Release and B - Build { Ajmal }
+   cApplication_Version = 01000115;
+   cAppVersion = '1.0.0.15';
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -866,7 +869,7 @@ Begin
                varZipFile.FileName := sMainZipFilaeName;
                varZipFile.ExtractFiles('*.*');
                MessageDlg('Application updated.', mtWarning, [mbOK], 0);
-               Close;
+               PMItemExit.Click;
             End;
          Finally
             varIDHttp.Free;
@@ -875,7 +878,7 @@ Begin
       End;
    End
    Else
-      MessageDlg(cNoNewAppVersionAvailablePrompt, mtInformation, [mbOK], 0);
+      MessageDlg(Format(cNoNewAppVersionAvailablePrompt, [cAppVersion , sLineBreak]), mtInformation, [mbOK], 0);
 End;
 
 Procedure TFormMDIMain.PMItemViewOrEditNotesClick(Sender: TObject);
@@ -1116,7 +1119,11 @@ Begin
          If Not varApplication.ISFixedParameter Then
             OpenParamBrowser(varApplication)
          Else
-            varApplication.RunExecutable;
+         Begin
+            If varApplication.CopyFromSourceFolder Then
+               varApplication.UnZip;
+               varApplication.RunExecutable;
+         End;
       End
       Else If varSelected.InheritsFrom(TEApplicationGroup) And varAppGroup.IsApplication Then
       Begin

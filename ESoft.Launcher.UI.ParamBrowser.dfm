@@ -37,7 +37,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 10
       Top = 5
       Width = 37
-      Height = 28
+      Height = 15
       Margins.Left = 8
       Align = alLeft
       Caption = 'Search'
@@ -114,7 +114,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 5
       Top = 5
       Width = 106
-      Height = 25
+      Height = 15
       Align = alLeft
       Caption = 'Selected Parameter '
       Font.Charset = ANSI_CHARSET
@@ -128,8 +128,8 @@ object FormParameterBrowser: TFormParameterBrowser
     object lblParameter: TLabel
       AlignWithMargins = True
       Left = 5
-      Top = 36
-      Width = 678
+      Top = 39
+      Width = 3
       Height = 13
       Align = alBottom
       Layout = tlCenter
@@ -139,7 +139,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 603
       Top = 5
       Width = 75
-      Height = 25
+      Height = 28
       Margins.Right = 8
       Align = alRight
       Caption = 'Cancel'
@@ -152,7 +152,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 517
       Top = 5
       Width = 75
-      Height = 25
+      Height = 28
       Margins.Right = 8
       Align = alRight
       Caption = '  Ok'
@@ -168,7 +168,7 @@ object FormParameterBrowser: TFormParameterBrowser
       Left = 117
       Top = 7
       Width = 384
-      Height = 21
+      Height = 24
       Margins.Top = 5
       Margins.Right = 13
       Margins.Bottom = 5
@@ -314,6 +314,11 @@ object FormParameterBrowser: TFormParameterBrowser
       Caption = 'Add'
       ImageIndex = 30
       OnClick = PMItemAddClick
+    end
+    object PMItemCopy: TMenuItem
+      Caption = 'Copy'
+      ImageIndex = 1
+      OnClick = PMItemCopyClick
     end
     object PMItemDelete: TMenuItem
       Caption = 'Delete'

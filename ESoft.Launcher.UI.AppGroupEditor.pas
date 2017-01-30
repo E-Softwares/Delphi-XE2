@@ -72,6 +72,10 @@ Type
       PMItemDeleteTemplate: TMenuItem;
       PMItemLoadTemplate: TMenuItem;
       chkParameter: TCheckBox;
+      Label11: TLabel;
+      sBtnBrowseAppSourceCopy: TSpeedButton;
+      edtAppSourceCopy: TButtonedEdit;
+      cbSourcePrifix: TComboBox;
       Procedure sBtnBrowseAppSourceClick(Sender: TObject);
       Procedure btnOKClick(Sender: TObject);
       Procedure FormActivate(Sender: TObject);
@@ -89,11 +93,12 @@ Type
       Procedure PMItemSaveTemplateClick(Sender: TObject);
       procedure chkParameterClick(Sender: TObject);
       procedure cbFixedParamsSelect(Sender: TObject);
+      procedure edtAppSourceCopyChange(Sender: TObject);
    Private
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
-      FTempExecutable, FTempDestFolder, FTempFileMask: String;
+      FTempExecutable, FTempDestFolder, FTempFileMask, FTempSourceFolderCopyTo: String;
       FInitialized: Boolean;
       FUpdateFileMakWithName: Boolean;
       FAppGroup: TEApplicationGroup;
@@ -178,6 +183,12 @@ begin
    Else
       edtAppDest.Text := FTempDestFolder;
 
+   edtAppSourceCopy.Enabled := cbGroupType.ItemIndex <> cGroupType_Application;
+   If Not edtAppSourceCopy.Enabled Then
+      edtAppSourceCopy.Clear
+   Else
+      edtAppSourceCopy.Text := FTempSourceFolderCopyTo;
+
    edtExeName.Enabled := cbGroupType.ItemIndex <> cGroupType_Folder;
    If Not edtExeName.Enabled Then
       edtExeName.Clear
@@ -196,7 +207,6 @@ Begin
    edtSufix.Enabled := edtPrefix.Enabled;
    sEdtMainBranch.Enabled := edtPrefix.Enabled;
    sEdtCurrBranch.Enabled := edtPrefix.Enabled;
-   sEdtNoOfBuilds.Enabled := edtPrefix.Enabled;
    chkCreateFolderClick(Nil);
 End;
 
@@ -249,6 +259,7 @@ begin
                edtAppSource.Text := aFileName;
                chkCreateFolder.Checked := False;
                chkSkipRecent.Checked := True;
+               chkParameter.Checked := True;
             End
             Else
             Begin
@@ -271,6 +282,12 @@ procedure TFormAppGroupEditor.edtAppDestChange(Sender: TObject);
 begin
    If Trim(edtAppDest.Text) <> '' Then
       FTempDestFolder := edtAppDest.Text;
+end;
+
+procedure TFormAppGroupEditor.edtAppSourceCopyChange(Sender: TObject);
+begin
+   If Trim(edtAppSourceCopy.Text) <> '' Then
+      FTempSourceFolderCopyTo := edtAppSourceCopy.Text;
 end;
 
 Procedure TFormAppGroupEditor.edtAppSourceRightButtonClick(Sender: TObject);
@@ -322,6 +339,7 @@ Begin
    cbDisplayLabel.Items := FormMDIMain.DisplayLabels;
    FTempExecutable := edtExeName.Text;
    FTempDestFolder := edtAppDest.Text;
+   FTempSourceFolderCopyTo := edtAppSourceCopy.Text;
    FTempFileMask := edtFileMask.Text;
    ReloadTemplatesMenu;
 End;
@@ -345,6 +363,7 @@ Begin
    Begin
       _AssignValue(edtExeName, ExecutableName);
       _AssignValue(edtAppSource, SourceFolder);
+      _AssignValue(edtAppSourceCopy, SourceFolderCopyTo);
       _AssignValue(edtAppDest, DestFolder);
       _AssignValue(edtFileMask, FileMask);
       _AssignValue(edtPrefix, BranchingPrefix);
@@ -358,6 +377,7 @@ Begin
          cbFixedParams.ItemIndex := cbFixedParams.Items.IndexOf(FixedParameter);
    End;
    cbGroupType.ItemIndex := aAppGroup.GroupType;
+   cbSourcePrifix.ItemIndex := cbSourcePrifix.Items.IndexOf(aAppGroup.SourceFolderPrefix);
 
    chkCreateFolder.Checked := aAppGroup.CreateFolder;
    chkSkipRecent.Checked := aAppGroup.SkipFromRecent;
@@ -444,6 +464,11 @@ Begin
    aAppGroup.ExecutableName := edtExeName.Text;
    aAppGroup.Name := edtGroupName.Text;
    aAppGroup.SourceFolder := edtAppSource.Text;
+   If cbSourcePrifix.ItemIndex = 0 Then
+      aAppGroup.SourceFolderPrefix := ''
+   Else
+      aAppGroup.SourceFolderPrefix := cbSourcePrifix.Text;
+   aAppGroup.SourceFolderCopyTo := edtAppSourceCopy.Text;
    aAppGroup.DestFolder := edtAppDest.Text;
    aAppGroup.FileMask := edtFileMask.Text;
    aAppGroup.CreateFolder := chkCreateFolder.Enabled And chkCreateFolder.Checked;
@@ -474,7 +499,9 @@ Begin
             edtAppDest.Text := sPath;
       End
       Else If Sender = sBtnBrowseAppDest Then
-         edtAppDest.Text := sPath;
+         edtAppDest.Text := sPath
+      Else If Sender = sBtnBrowseAppSourceCopy Then
+         edtAppSourceCopy.Text := sPath;
    End;
 End;
 

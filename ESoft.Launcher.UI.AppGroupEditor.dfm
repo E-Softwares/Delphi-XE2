@@ -3,7 +3,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
   Top = 0
   BorderStyle = bsDialog
   Caption = 'Group Editor'
-  ClientHeight = 405
+  ClientHeight = 429
   ClientWidth = 371
   Color = 14871789
   Font.Charset = DEFAULT_CHARSET
@@ -22,12 +22,12 @@ object FormAppGroupEditor: TFormAppGroupEditor
     Left = 3
     Top = 3
     Width = 365
-    Height = 399
+    Height = 423
     Align = alClient
     TabOrder = 0
     DesignSize = (
       365
-      399)
+      423)
     object Label2: TLabel
       Left = 17
       Top = 99
@@ -51,7 +51,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object Label3: TLabel
       Left = 17
-      Top = 126
+      Top = 153
       Width = 65
       Height = 13
       Caption = 'Destination'
@@ -64,7 +64,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object sBtnBrowseAppDest: TSpeedButton
       Left = 327
-      Top = 123
+      Top = 150
       Width = 23
       Height = 22
       Caption = '...'
@@ -72,7 +72,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object Label4: TLabel
       Left = 17
-      Top = 153
+      Top = 180
       Width = 52
       Height = 13
       Caption = 'File Mask'
@@ -111,7 +111,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object Label6: TLabel
       Left = 17
-      Top = 180
+      Top = 207
       Width = 61
       Height = 13
       Caption = 'Parameter'
@@ -135,10 +135,31 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Font.Style = [fsBold]
       ParentFont = False
     end
+    object Label11: TLabel
+      Left = 17
+      Top = 126
+      Width = 43
+      Height = 13
+      Caption = 'Copy to'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'Tahoma'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object sBtnBrowseAppSourceCopy: TSpeedButton
+      Left = 327
+      Top = 123
+      Width = 23
+      Height = 22
+      Caption = '...'
+      OnClick = sBtnBrowseAppSourceClick
+    end
     object edtAppSource: TButtonedEdit
-      Left = 100
+      Left = 171
       Top = 96
-      Width = 221
+      Width = 150
       Height = 21
       Images = FormMDIMain.ImageList_Ord
       ReadOnly = True
@@ -151,7 +172,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object edtAppDest: TButtonedEdit
       Left = 100
-      Top = 123
+      Top = 150
       Width = 221
       Height = 21
       Images = FormMDIMain.ImageList_Ord
@@ -166,7 +187,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object edtFileMask: TButtonedEdit
       Left = 100
-      Top = 150
+      Top = 177
       Width = 150
       Height = 21
       Images = FormMDIMain.ImageList_Ord
@@ -199,7 +220,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object btnCancel: TButton
       Left = 275
-      Top = 362
+      Top = 386
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -210,7 +231,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object btnOK: TButton
       Left = 194
-      Top = 362
+      Top = 386
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
@@ -238,7 +259,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object cbFixedParams: TComboBox
       Left = 121
-      Top = 177
+      Top = 204
       Width = 129
       Height = 21
       Style = csDropDownList
@@ -248,7 +269,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object chkCreateFolder: TCheckBox
       Left = 264
-      Top = 152
+      Top = 179
       Width = 90
       Height = 17
       Caption = ' Create Folder'
@@ -282,7 +303,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object grpBranching: TGroupBox
       Left = 17
-      Top = 204
+      Top = 231
       Width = 333
       Height = 141
       Caption = '  Branching  '
@@ -430,7 +451,6 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Top = 107
         Width = 65
         Height = 22
-        Enabled = False
         MaxValue = 25
         MinValue = 0
         TabOrder = 6
@@ -459,7 +479,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object chkSkipRecent: TCheckBox
       Left = 264
-      Top = 179
+      Top = 206
       Width = 90
       Height = 17
       Caption = ' Skip Recent'
@@ -467,9 +487,10 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object btnTemplate: TButton
       Left = 17
-      Top = 362
+      Top = 386
       Width = 90
       Height = 25
+      Anchors = [akLeft, akBottom]
       Caption = 'Template'
       DropDownMenu = PopupMenuTemplate
       ImageIndex = 9
@@ -479,18 +500,46 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object chkParameter: TCheckBox
       Left = 100
-      Top = 179
+      Top = 206
       Width = 15
       Height = 17
+      Hint = 'Disable parameter browser with a fixed parameter.'
       TabOrder = 14
       OnClick = chkParameterClick
+    end
+    object edtAppSourceCopy: TButtonedEdit
+      Left = 100
+      Top = 123
+      Width = 221
+      Height = 21
+      Images = FormMDIMain.ImageList_Ord
+      ReadOnly = True
+      RightButton.ImageIndex = 34
+      RightButton.PressedImageIndex = 4
+      RightButton.Visible = True
+      TabOrder = 15
+      TextHint = 'Source Folder'
+      OnChange = edtAppSourceCopyChange
+      OnRightButtonClick = edtAppSourceRightButtonClick
+    end
+    object cbSourcePrifix: TComboBox
+      Left = 100
+      Top = 96
+      Width = 65
+      Height = 21
+      Style = csDropDownList
+      ItemIndex = 0
+      TabOrder = 16
+      Items.Strings = (
+        ''
+        'file://')
     end
   end
   object PopupMenuTemplate: TPopupMenu
     AutoHotkeys = maManual
     Images = FormMDIMain.ImageList_20
     Left = 120
-    Top = 360
+    Top = 384
     object PMItemLoadTemplate: TMenuItem
       Caption = 'Load'
       ImageIndex = 19

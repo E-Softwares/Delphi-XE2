@@ -75,6 +75,7 @@ Type
       PMItemRunasadministrator: TMenuItem;
       ClntDSetParametersParamCategory: TStringField;
       cbCategories: TComboBox;
+      PMItemCopy: TMenuItem;
       Procedure edtFilterKeyUp(Sender: TObject; Var Key: Word; Shift: TShiftState);
       Procedure edtFilterChange(Sender: TObject);
       Procedure MItemSearchClick(Sender: TObject);
@@ -95,7 +96,8 @@ Type
       Procedure dbGridParametersDblClick(Sender: TObject);
       Procedure PopupMenuPopup(Sender: TObject);
       Function HasCategory: Boolean;
-      procedure cbCategoriesChange(Sender: TObject);
+      Procedure cbCategoriesChange(Sender: TObject);
+      Procedure PMItemCopyClick(Sender: TObject);
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
@@ -142,9 +144,12 @@ Begin
 
    Assert(Assigned(FSelectedApplication));
 
-   FSelectedApplication.UnZip;
-   FSelectedApplication.RunExecutable(Parameter);
-   FSelectedApplication.LastUsedParamName := ClntDSetParametersParamCode.AsString;
+   If FSelectedApplication.CopyFromSourceFolder Then
+   Begin
+     FSelectedApplication.UnZip;
+     FSelectedApplication.RunExecutable(Parameter);
+     FSelectedApplication.LastUsedParamName := ClntDSetParametersParamCode.AsString;
+   End;
    ModalResult := mrOk;
 End;
 
@@ -291,7 +296,7 @@ Begin
       cbCategories.ItemIndex := cbCategories.Items.IndexOf(FSelectedApplication.FixedParameter);
       edtFilterChange(Nil);
    End
-   Else 
+   Else
    Begin
       cbCategories.ItemIndex := cbCategories.Items.IndexOf(cParameterAll);
    End;
@@ -394,6 +399,18 @@ Procedure TFormParameterBrowser.PMItemAddClick(Sender: TObject);
 Begin
    FormParamEditor := TFormParamEditor.Create(Self);
    Try
+      If FormParamEditor.ShowModal = mrOk Then
+         LoadParametrs;
+   Finally
+      FormParamEditor.Free;
+   End;
+End;
+
+Procedure TFormParameterBrowser.PMItemCopyClick(Sender: TObject);
+Begin
+   FormParamEditor := TFormParamEditor.Create(Self);
+   Try
+      FormParamEditor.LoadData(SelectedParameter);
       If FormParamEditor.ShowModal = mrOk Then
          LoadParametrs;
    Finally

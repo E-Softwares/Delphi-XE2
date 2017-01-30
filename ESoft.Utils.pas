@@ -20,7 +20,7 @@ Uses
 
 Const
    cInvalidAppCode = 1;
-   cNoNewAppVersionAvailablePrompt = 'No new update available.';
+   cNoNewAppVersionAvailablePrompt = 'You have the latest version %s %sNo new update available.';
    cNewAppVersionAvailablePrompt = 'New version of application is available.' + sLineBreak + 'Do you want to update ?';
    cAppVersionFileLink = 'http://esoft.ucoz.com/ESoft_Licence/ESoft_App_Version.txt';
    cUniqueFileFormat = '%s-%s';

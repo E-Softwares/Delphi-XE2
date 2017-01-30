@@ -22,6 +22,7 @@ Uses
    Generics.Collections,
    Math,
    ClipBrd,
+   ESoft.Utils,
    BackgroundWorker;
 
 Type
@@ -48,14 +49,15 @@ Type
       FDownloader: TEDownloadManager;
       FPaused: Boolean;
       Procedure AdjustSize;
-
+   Protected
+      Procedure CreateParams(Var aParams: TCreateParams); Override;
    Public
       Constructor Create(aOwner: TComponent; Const aDownLoader: TEDownloadManager); Reintroduce;
    End;
 
    IEDownloadManager = Interface
       ['{4487BEA6-68AF-4773-913A-23FF33D9D688}']
-      Function GetOwner: TComponent;
+      Function GetOwnerForm: TForm;
       Function GetCaption: String;
       Procedure SetCaption(Const Value: String);
       Function GetDialog: TFormDownloader;
@@ -68,7 +70,7 @@ Type
 
       Property Caption: String Read GetCaption Write SetCaption;
       Property Dialog: TFormDownloader Read GetDialog;
-      Property Owner: TComponent Read GetOwner;
+      Property OwnerForm: TForm Read GetOwnerForm;
       Property PacketSize: Integer Read GetPacketSize;
       Property Items: TEDownloaderItemDict Read GetItems;
    End;
@@ -77,10 +79,10 @@ Type
    Strict Private
       FFileSize: Int64;
       FURL, FFileName: String;
-      FOwner: TComponent;
+      FOwnerForm: TForm;
       FDownloaderForm: TFormDownloader;
 
-      Function GetOwner: TComponent;
+      Function GetOwnerForm: TForm;
       Function GetCaption: String;
       Procedure SetCaption(Const Value: String);
       Function GetDialog: TFormDownloader;
@@ -91,29 +93,29 @@ Type
       Function QueryInterface(Const IID: TGUID; Out Obj): HRESULT; Stdcall;
       Function _AddRef: Integer; Stdcall;
       Function _Release: Integer; Stdcall;
-
    Private
       FItems: TEDownloaderItemDict;
       Property URL: String Read FURL Write SetURL;
       Property FileName: String Read FFileName Write FFileName;
-
    Public
-      Constructor Create(aOwner: TComponent);
+      Constructor Create(aOwner: TForm);
       Destructor Destroy; Override;
 
       Function FileSize: Int64;
       Procedure Add(Const aUrl, aFileName: String);
       Function Download: Boolean;
-
    Published
       Property Caption: String Read GetCaption Write SetCaption;
       Property Dialog: TFormDownloader Read GetDialog;
-      Property Owner: TComponent Read GetOwner;
+      Property OwnerForm: TForm Read GetOwnerForm;
       Property PacketSize: Integer Read GetPacketSize;
       Property Items: TEDownloaderItemDict Read GetItems;
    End;
 
 Implementation
+
+uses
+  UnitMDIMain;
 
 {$R *.dfm}
 
@@ -122,7 +124,7 @@ Const
    cDefaultCaption = 'Download Manager';
    cDefaultTitle = 'Downloading file(s)';
    cDefaultText = 'Please wait . . . !';
-   cDefaultPacketSize = 1024;
+   cDefaultPacketSize = 51200;
    cProgressFull = -1;
    cProgressUpdateFileSize = -2;
    cConnectionTimeOut = 3000;
@@ -139,11 +141,11 @@ Begin
    Items.Add(aUrl, aFileName);
 End;
 
-Constructor TEDownloadManager.Create(aOwner: TComponent);
+Constructor TEDownloadManager.Create(aOwner: TForm);
 Begin
    Assert(Assigned(aOwner), 'Owner cannot be nil');
 
-   FOwner := aOwner;
+   FOwnerForm := aOwner;
 End;
 
 Destructor TEDownloadManager.Destroy;
@@ -157,12 +159,28 @@ Begin
 End;
 
 Function TEDownloadManager.FileSize: Int64;
+
+  Function _FileSize(Const aFilename: String): Int64;
+  var
+    varInfo: TWin32FileAttributeData;
+  Begin
+     Result := -1;
+
+     If Not GetFileAttributesEx(PWideChar(aFileName), GetFileExInfoStandard, @varInfo) Then
+        Exit;
+
+     Result := Int64(varInfo.nFileSizeLow) or Int64(varInfo.nFileSizeHigh shl 32);
+  End;
+
 Var
    varHttp: TIdHttp;
 Begin
    // If FFileSize <> -1. We have already read the size of this files once. { Ajmal }
    If FFileSize <> -1 Then
       Exit(FFileSize);
+
+   If StrStartsWith(URL, 'file://', False) Then
+      Exit(_FileSize(StringReplace(URL, 'file://', '', [])));
 
    varHttp := TIdHTTP.Create;
    Try
@@ -197,7 +215,7 @@ End;
 Function TEDownloadManager.GetDialog: TFormDownloader;
 Begin
    If Not Assigned(FDownloaderForm) Then
-      FDownloaderForm := TFormDownloader.Create(Owner, Self);
+      FDownloaderForm := TFormDownloader.Create(OwnerForm, Self);
    Result := FDownloaderForm;
 End;
 
@@ -208,9 +226,9 @@ Begin
    Result := FItems;
 End;
 
-Function TEDownloadManager.GetOwner: TComponent;
+Function TEDownloadManager.GetOwnerForm: TForm;
 Begin
-   Result := FOwner;
+   Result := FOwnerForm;
 End;
 
 Function TEDownloadManager.GetPacketSize: Integer;
@@ -296,7 +314,7 @@ Begin
                Begin
                   If FPaused Then
                   Begin
-                     Sleep(100);
+                     Sleep(1);
                      Continue;
                   End;
                   dwBytesRead := FDownloader.PacketSize;
@@ -308,6 +326,7 @@ Begin
                   Inc(iProgress);
                   Worker.ReportProgress(iProgress);
                End;
+
                If Worker.CancellationPending Then
                   Worker.AcceptCancellation
                Else
@@ -336,23 +355,34 @@ End;
 
 Procedure TFormDownloader.bkGndWorkerWorkProgress(Worker: TBackgroundWorker; PercentDone: Integer);
 Var
-   iPercent: Integer;
+   iPercent, iPacketSizeInMB: Integer;
+   bPausedState: Boolean;
 Begin
-   Case PercentDone Of
-      cProgressFull:
-         pbMain.Position := pbMain.Max;
-      cProgressUpdateFileSize:
-         Begin
-            pbMain.Position := 0;
-            pbMain.Max := Round(FDownloader.FileSize / FDownloader.PacketSize);
-            lblText.Caption := FDownloader.URL;
-         End;
-   Else
-      Begin
-         pbMain.Position := PercentDone;
-         iPercent := Round((PercentDone * 100) Div pbMain.Max);
-         lblPercentDone.Caption := Format(cProgressMessage, [iPercent, (pbMain.Position / 1000), (pbMain.Max / 1000)]);
-      End;
+   bPausedState := FPaused;
+   FPaused := True;
+   Try
+     Case PercentDone Of
+        cProgressFull:
+           pbMain.Position := pbMain.Max;
+        cProgressUpdateFileSize:
+           Begin
+              pbMain.Position := 0;
+              pbMain.Max := Round(FDownloader.FileSize / FDownloader.PacketSize);
+              lblText.Caption := FDownloader.URL;
+           End;
+     Else
+        Begin
+           pbMain.Position := PercentDone;
+           iPercent := Round((PercentDone * 100) Div pbMain.Max);
+           iPacketSizeInMB := Round(FDownloader.PacketSize / 1000);
+           lblPercentDone.Caption := Format(cProgressMessage, [
+              iPercent,
+              (pbMain.Position / 1000) * iPacketSizeInMB,
+              (pbMain.Max / 1000) * iPacketSizeInMB]);
+        End;
+     End;
+   Finally
+     FPaused := bPausedState;
    End;
 End;
 
@@ -378,6 +408,14 @@ Begin
    Inherited Create(aOwner);
 
    FDownloader := aDownLoader;
+End;
+
+Procedure TFormDownloader.CreateParams(var aParams: TCreateParams);
+Begin
+   Inherited;
+
+   If Owner = Application Then
+      aParams.ExStyle := aParams.ExStyle Or WS_EX_APPWINDOW;
 End;
 
 Procedure TFormDownloader.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);

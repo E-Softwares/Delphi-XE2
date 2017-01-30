@@ -50,8 +50,7 @@ Type
       { Public declarations }
       Constructor Create(aOwner: TComponent; Const aParameter: TEParameterBase = Nil); Reintroduce;
 
-      Procedure LoadData;
-
+      Procedure LoadData(const aParameter: TEParameterBase);
    Published
       Property Parameter: TEParameterBase Read FParameter;
    End;
@@ -156,31 +155,31 @@ Begin
    If Not FInitialized Then
    Begin
       FInitialized := True;
-      // Reload connections. { Ajmal }
-      FormMDIMain.Connections.LoadConnections;
-      cbConnections.Items.AddStrings(FormMDIMain.Connections.Connections);
       If Assigned(FParameter) Then
-         LoadData;
+         LoadData(FParameter);
    End;
 End;
 
 procedure TFormParamEditor.FormCreate(Sender: TObject);
 begin
    cbCategory.Items := FormMDIMain.ParamCategories;
+   // Reload connections. { Ajmal }
+   FormMDIMain.Connections.LoadConnections;
+   cbConnections.Items.AddStrings(FormMDIMain.Connections.Connections);
 end;
 
-Procedure TFormParamEditor.LoadData;
+Procedure TFormParamEditor.LoadData(const aParameter: TEParameterBase);
 Begin
    chkConnectionParamClick(Nil);
 
-   edtParamName.Text := Parameter.Name;
-   edtParameter.Text := Parameter.Parameter;
-   chkConnectionParam.Checked := Parameter Is TEConnectionParameter;
-   cbCategory.Text := Parameter.ParamCategory;
+   edtParamName.Text := aParameter.Name;
+   edtParameter.Text := aParameter.Parameter;
+   chkConnectionParam.Checked := aParameter Is TEConnectionParameter;
+   cbCategory.Text := aParameter.ParamCategory;
    If Not chkConnectionParam.Checked Then
-      chkDefaultInclude.Checked := TEAdditionalParameter(Parameter).DefaultInclude
+      chkDefaultInclude.Checked := TEAdditionalParameter(aParameter).DefaultInclude
    Else
-      cbConnections.ItemIndex := cbConnections.Items.IndexOf(TEConnectionParameter(Parameter).Connection);
+      cbConnections.ItemIndex := cbConnections.Items.IndexOf(TEConnectionParameter(aParameter).Connection);
 End;
 
 End.

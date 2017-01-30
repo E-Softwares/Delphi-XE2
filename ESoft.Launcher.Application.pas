@@ -12,6 +12,7 @@ Uses
    System.Classes,
    System.StrUtils,
    System.Types,
+   Vcl.Forms,
    IniFiles,
    Vcl.Dialogs,
    Vcl.Controls,
@@ -76,6 +77,7 @@ Type
       Function TargetFolder: String;
       Function RunExecutable(aParameter: String = ''): Boolean;
       Function UnZip: Boolean;
+      Function CopyFromSourceFolder: Boolean;
 
       Function VersionName: TStringDynArray;
       Function MajorVersionName: String;
@@ -100,7 +102,8 @@ Type
       FFixedParameter, FExecutableName, FName: String;
       FLastUsedParamName: String;
       FISFixedParameter: Boolean;
-      FSourceFolder: String;
+      FSourceFolder, FSourceFolderPrefix: String;
+      FSourceFolderCopyTo: String;
       FDestFolder: String;
       FFileMask: String;
       FDisplayLabel: String;
@@ -117,11 +120,14 @@ Type
       Function GetLastUsedParamName: String;
       procedure SetLastUsedParamName(const aValue: String);
       Procedure SetSourceFolder(Const Value: String);
+      Procedure SetSourceFolderCopyTo(Const aValue: String);
       Procedure SetDestFolder(Const Value: String);
       Procedure SetFileMask(Const Value: String);
       Function AddItem: TEApplication;
       Function InsertItem(Const aIndex: Integer): TEApplication;
       Function GetIcon: TIcon;
+      Function GetFinalSourceFolder: String;  
+      procedure SetSourceFolderPrefix(const Value: String);
    Public
       Constructor Create;
       Destructor Destroy; Override;
@@ -133,18 +139,22 @@ Type
       Function TargetFolder: String;
       Function RunExecutable(aParameter: String = ''): Boolean;
       Function UnZip: Boolean;
+      Function CopyFromSourceFolder: Boolean;
+      Function NeedToCopy: Boolean;
       Procedure LoadApplications;
       Procedure LoadData(Const aFileName: String);
       Procedure SaveData(Const aFileName: String);
 
       Function IsBranchingEnabled: Boolean;
-
+      Property FinalSourceFolder: String Read GetFinalSourceFolder;
    Published
       Property Name: String Read FName Write FName;
       Property ExecutableName: String Read FExecutableName Write FExecutableName;
       Property FileMask: String Read FFileMask Write SetFileMask;
       Property DestFolder: String Read FDestFolder Write SetDestFolder;
       Property SourceFolder: String Read FSourceFolder Write SetSourceFolder;
+      Property SourceFolderPrefix: String Read FSourceFolderPrefix Write FSourceFolderPrefix;
+      Property SourceFolderCopyTo: String Read FSourceFolderCopyTo Write SetSourceFolderCopyTo;
       Property CreateFolder: Boolean Read FCreateFolder Write FCreateFolder;
       Property SkipFromRecent: Boolean Read FSkipFromRecent Write FSkipFromRecent;
       Property FixedParameter: String Read GetFixedParameter Write FFixedParameter;
@@ -188,7 +198,8 @@ Implementation
 
 Uses
    UnitMDIMain,
-   ESoft.Launcher.UI.ParamBrowser;
+   ESoft.Launcher.UI.ParamBrowser,
+   ESoft.UI.Downloader;
 
 Const
    cBRANCH_MAJOR_VERSION = 0;
@@ -203,6 +214,8 @@ Const
    cGroupExeName = 'Executable_Name';
    cGroupFileMask = 'File_Mask';
    cGroupSourceFolder = 'Source_Folder';
+   cGroupSourceFolderPrefix = 'Source_Folder_Prefix';
+   cGroupSourceFolderCopyTo = 'Source_Folder_CopyTo';
    cGroupDestFolder = 'Target_Folder';
    cGroupCreateFolder = 'Create_Folder';
    cGroupSkipFromRecent = 'Skip_From_Recent';
@@ -222,6 +235,11 @@ Function TEApplicationGroup.AddItem: TEApplication;
 Begin
    Result := TEApplication.Create(Self);
    Add(Result);
+End;
+
+Function TEApplicationGroup.CopyFromSourceFolder: Boolean;
+Begin
+   Result := True;
 End;
 
 Constructor TEApplicationGroup.Create;
@@ -249,12 +267,20 @@ End;
 
 Function TEApplicationGroup.IsBranchingEnabled: Boolean;
 Begin
-   Result := IsMajorBranching Or IsMinorBranching Or IsReleaseBranching;
+   Result := IsMajorBranching Or IsMinorBranching Or IsReleaseBranching Or (NoOfBuilds > 0);
 End;
 
 Function TEApplicationGroup.GetActualName: String;
 Begin
    Result := Name;
+End;
+
+Function TEApplicationGroup.GetFinalSourceFolder: String;
+Begin
+   If NeedToCopy Then
+      Result := SourceFolderCopyTo
+   Else
+      Result := SourceFolder;
 End;
 
 function TEApplicationGroup.GetFixedParameter: String;
@@ -269,7 +295,7 @@ Begin
    Result := Nil;
 
    If IsApplication Then
-      sFileName := SourceFolder + ExecutableName
+      sFileName := FinalSourceFolder + ExecutableName
    Else
       sFileName := DestFolder + ExecutableName;
 
@@ -332,6 +358,8 @@ Begin
       ExecutableName := varIniFile.ReadString(Name, cGroupExeName, '');
       FileMask := varIniFile.ReadString(Name, cGroupFileMask, '');
       SourceFolder := varIniFile.ReadString(Name, cGroupSourceFolder, '');
+      SourceFolderPrefix := varIniFile.ReadString(Name, cGroupSourceFolderPrefix, '');
+      SourceFolderCopyTo := varIniFile.ReadString(Name, cGroupSourceFolderCopyTo, '');
       DestFolder := varIniFile.ReadString(Name, cGroupDestFolder, '');
       CreateFolder := varIniFile.ReadBool(Name, cGroupCreateFolder, True);
       SkipFromRecent := varIniFile.ReadBool(Name, cGroupSkipFromRecent, False);
@@ -360,6 +388,11 @@ Begin
    End;
 End;
 
+Function TEApplicationGroup.NeedToCopy: Boolean;
+Begin
+  Result := (Trim(SourceFolderCopyTo) <> '') And DirectoryExists(SourceFolderCopyTo);
+End;
+
 Function TEApplicationGroup.QueryInterface(Const IID: TGUID; Out Obj): HRESULT;
 Begin
    Inherited;
@@ -373,7 +406,7 @@ Begin
    If ISFixedParameter Then
       aParameter := aParameter + ' ' + FixedParameter;
 
-   FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder, SkipFromRecent);
+   FormMDIMain.RunApplication(Name, ExecutableName, aParameter, FinalSourceFolder, SkipFromRecent);
 End;
 
 Procedure TEApplicationGroup.SaveData(Const aFileName: String);
@@ -387,6 +420,8 @@ Begin
       varIniFile.WriteString(Name, cGroupExeName, ExecutableName);
       varIniFile.WriteString(Name, cGroupFileMask, FileMask);
       varIniFile.WriteString(Name, cGroupSourceFolder, SourceFolder);
+      varIniFile.WriteString(Name, cGroupSourceFolderPrefix, SourceFolderPrefix);
+      varIniFile.WriteString(Name, cGroupSourceFolderCopyTo, SourceFolderCopyTo);
       varIniFile.WriteString(Name, cGroupDestFolder, DestFolder);
       varIniFile.WriteBool(Name, cGroupCreateFolder, CreateFolder);
       varIniFile.WriteBool(Name, cGroupSkipFromRecent, SkipFromRecent);
@@ -448,6 +483,22 @@ Begin
       FSourceFolder := Value;
 End;
 
+Procedure TEApplicationGroup.SetSourceFolderCopyTo(Const aValue: String);
+Var
+   iLen: Integer;
+Begin
+   iLen := Length(aValue);
+   If (iLen > 0) And (aValue[iLen] <> '\') Then
+      FSourceFolderCopyTo := aValue + '\'
+   Else
+      FSourceFolderCopyTo := aValue;
+End;
+
+procedure TEApplicationGroup.SetSourceFolderPrefix(const Value: String);
+begin
+  FSourceFolderPrefix := Value;
+end;
+
 Function TEApplicationGroup.TargetFolder: String;
 Begin
    If CreateFolder Then
@@ -458,7 +509,7 @@ End;
 
 Function TEApplicationGroup.UnZip: Boolean;
 Begin
-   // Nothing to do. { Ajmal }
+   Result := True;
 End;
 
 Function TEApplicationGroup._AddRef: Integer;
@@ -559,12 +610,18 @@ End;
 { TEApplication }
 
 Function TEApplication.BuildNumber: Integer;
+var
+   iLen: Integer;
 Begin
    If Not Owner.IsBranchingEnabled Then
       Exit(cInvalidBuildNumber);
 
    Try
-      Result := StrToInt(Trim(VersionName[cBRANCH_BUILD_VERSION]));
+      iLen := Length(VersionName);
+      If iLen >= cBRANCH_BUILD_VERSION Then
+         Result := StrToInt(Trim(VersionName[cBRANCH_BUILD_VERSION]))
+      Else If iLen <> 0 Then         
+         Result := StrToInt(Trim(VersionName[Length(VersionName) - 1])); // Try to get the last number at least { Ajmal }
    Except
       Result := cInvalidBuildNumber;
    End;
@@ -659,6 +716,38 @@ Begin
    End;
 End;
 
+Function TEApplication.CopyFromSourceFolder: Boolean;
+var
+   varDownloader: IEDownloadManager;
+   bVisible: Boolean;
+Begin
+   Result := False;
+   If Not Owner.NeedToCopy Then
+      Exit(True);
+
+   bVisible := FormMDIMain.Visible;
+   If Not (bVisible Or (Assigned(FormParameterBrowser) And FormParameterBrowser.Visible)) Then
+   Begin
+     FormMDIMain.Visible := True;
+     FormMDIMain.WindowState := wsMinimized;
+   End;
+   Try
+   If FileExists(Owner.SourceFolderCopyTo + FileName) And (MessageDlg('The file already exsit, do you want to download again ?', mtConfirmation, [mbYes, mbNo], 0, mbNo) = mrNo) Then
+      Exit(False);
+   Finally
+      FormMDIMain.Visible := bVisible;
+   End;
+
+   varDownloader := TEDownloadManager.Create(Application.MainForm);
+   varDownloader.Add(Owner.SourceFolderPrefix + Owner.SourceFolder + FileName, Owner.SourceFolderCopyTo + FileName);
+   Try
+      Result := varDownloader.Download;
+   Except
+      On E:Exception Do
+         MessageDlg(E.Message, mtError, [mbOK], 0);
+   End;
+End;
+
 Function TEApplication.RunExecutable(aParameter: String): Boolean;
 var
    sFileName: String;
@@ -673,7 +762,7 @@ Begin
    If Owner.ExecutableName = '' Then
    Begin
       sFileName := FileName;
-      sTargetFolder := Owner.SourceFolder;
+      sTargetFolder := Owner.FinalSourceFolder;
    End;
 
    FormMDIMain.RunApplication(Name, sFileName, aParameter, sTargetFolder, Owner.SkipFromRecent);
@@ -744,12 +833,12 @@ Begin
          Exit;
       ForceDirectories(TargetFolder);
 {$IFDEF AbbreviaZipper}
-      varUnAbZipper.FileName := Owner.SourceFolder + FileName;
+      varUnAbZipper.FileName := Owner.FinalSourceFolder + FileName;
       varUnAbZipper.BaseDirectory := TargetFolder;
       varUnAbZipper.ExtractOptions := [eoCreateDirs, eoRestorePath];
       varUnAbZipper.ExtractFiles('*.*');
 {$ELSE}
-      varZipFile.ExtractZipFile(Owner.SourceFolder + FileName, sDestFolder);
+      varZipFile.ExtractZipFile(Owner.FinalSourceFolder + FileName, sDestFolder);
 {$ENDIF}
       Result := True;
    Finally

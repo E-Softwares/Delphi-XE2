@@ -26,6 +26,7 @@ Type
       procedure SetLastUsedParamName(const aValue: String);
       Function RunExecutable(aParameter: String = ''): Boolean;
       Function UnZip: Boolean;
+      Function CopyFromSourceFolder: Boolean;
 
       Property ActualName: String Read GetActualName;
       Property ISFixedParameter: Boolean Read GetISFixedParameter;
@@ -62,6 +63,7 @@ Type
 
       Function RunExecutable(aParameter: String = ''): Boolean;
       Function UnZip: Boolean;
+      Function CopyFromSourceFolder: Boolean;
 
       Property ActualName: String Read GetActualName;
       Property Name: String Read FName;
@@ -90,6 +92,11 @@ Implementation
 
 Uses
    UnitMDIMain;
+
+Function TERecentItem.CopyFromSourceFolder: Boolean;
+Begin
+   Result := True;
+End;
 
 Constructor TERecentItem.Create(Const aOwner: TERecentItems; Const aName, aSourceFolder, aExecutableName: String);
 Begin
@@ -192,7 +199,7 @@ End;
 
 Function TERecentItem.UnZip: Boolean;
 Begin
-   // Nothing to do. { Ajmal }
+   Result := True;
 End;
 
 Function TERecentItem._AddRef: Integer;
