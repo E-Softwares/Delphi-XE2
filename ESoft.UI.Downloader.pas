@@ -23,7 +23,8 @@ Uses
    Math,
    ClipBrd,
    ESoft.Utils,
-   BackgroundWorker;
+   BackgroundWorker, 
+   Vcl.ExtCtrls;
 
 Type
    // Forward declaration. { Ajmal }
@@ -32,11 +33,13 @@ Type
 
    TFormDownloader = Class(TForm)
       btnCancel: TButton;
-      pbMain: TProgressBar;
       lblTitle: TLabel;
       lblText: TLabel;
       bkGndWorker: TBackgroundWorker;
       lblPercentDone: TLabel;
+      Panel1: TPanel;
+      pbAll: TProgressBar;
+      pbMain: TProgressBar;
       Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
       Procedure btnCancelClick(Sender: TObject);
       Procedure bkGndWorkerWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
@@ -199,6 +202,11 @@ Begin
 
    If FileSize = -1 Then
       Exit;
+
+   Dialog.pbAll.Position := 0;
+   Dialog.pbAll.Max := Items.Count;
+   If Items.Count < 2 Then
+      Dialog.pbAll.Hide;
 
    Dialog.lblPercentDone.Caption := 'Connecting. Please wait . . . !';
    Dialog.AdjustSize;
@@ -365,12 +373,13 @@ Begin
         cProgressFull:
            pbMain.Position := pbMain.Max;
         cProgressUpdateFileSize:
-           Begin
-              pbMain.Position := 0;
-              pbMain.Max := Round(FDownloader.FileSize / FDownloader.PacketSize);
-              lblText.Caption := FDownloader.URL;
-           End;
-     Else
+        Begin
+           pbAll.Position := pbAll.Position + 1;
+           pbMain.Position := 0;
+           pbMain.Max := Round(FDownloader.FileSize / FDownloader.PacketSize);
+           lblText.Caption := FDownloader.URL;
+        End;
+        Else
         Begin
            pbMain.Position := PercentDone;
            iPercent := Round((PercentDone * 100) Div pbMain.Max);
@@ -389,8 +398,12 @@ End;
 Procedure TFormDownloader.btnCancelClick(Sender: TObject);
 Begin
    FPaused := True;
+   pbAll.State := pbsPaused;
+   pbMain.State := pbsPaused;
    If MessageDlg('Do you want to cancel downloading ?', mtWarning, [mbYes, mbNo], 0, mbNo) = mrNo Then
    Begin
+      pbMain.State := pbsNormal;
+      pbAll.State := pbsNormal;
       FPaused := False;
       Exit;
    End;
