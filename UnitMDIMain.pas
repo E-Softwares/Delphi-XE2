@@ -1268,10 +1268,12 @@ Var
          Result := _AddMenu(aApplication.ReleaseVersionName, Nil, Result);
 
       // For build seperation { Ajmal }
-      If (aApplication.Owner.NoOfBuilds = 0) Or (aApplication.BuildNumber = cInvalidBuildNumber) Then
+      If aApplication.Owner.NoOfBuilds = 0 Then
          Exit;
+      If aApplication.BuildNumber = cInvalidBuildNumber Then
+         Exit(Nil);
 
-      If (Result.Count > 0) And (Result.Items[Pred(Result.Count)].Count < aApplication.Owner.NoOfBuilds) Then
+      If (Result.Count > 0) And (Result.Items[Pred(Result.Count)].Count in [1 .. aApplication.Owner.NoOfBuilds]) Then
       Begin
          Result := Result.Items[Pred(Result.Count)];
          Result.Caption := Format('Builds [%d-%d]', [ //
@@ -1363,15 +1365,18 @@ Begin
             If bkGndUpdateAppList.CancellationPending Then
                Break;
             varBranchMenuItem := _ApplicationBranch(varApp, varCurrMenuGroup);
-            varCurrMenuItem := TMenuItem.Create(varBranchMenuItem);
-            varCurrMenuItem.Caption := varApp.Name;
-            varCurrMenuItem.Tag := NativeInt(varApp);
-            varCurrMenuItem.OnClick := tvApplicationsDblClick;
-            If iCurrGrpImageIndex <> cIMG_NONE Then
-               imlAppIcons.GetBitmap(iCurrGrpImageIndex, varCurrMenuItem.Bitmap)
-            Else
-              varCurrMenuItem.ImageIndex := GetImageIndexForFileExt(varApp.Extension);
-            varBranchMenuItem.Add(varCurrMenuItem);
+            If Assigned(varBranchMenuItem) Then
+            Begin
+              varCurrMenuItem := TMenuItem.Create(varBranchMenuItem);
+              varCurrMenuItem.Caption := varApp.Name;
+              varCurrMenuItem.Tag := NativeInt(varApp);
+              varCurrMenuItem.OnClick := tvApplicationsDblClick;
+              If iCurrGrpImageIndex <> cIMG_NONE Then
+                 imlAppIcons.GetBitmap(iCurrGrpImageIndex, varCurrMenuItem.Bitmap)
+              Else
+                varCurrMenuItem.ImageIndex := GetImageIndexForFileExt(varApp.Extension);
+              varBranchMenuItem.Add(varCurrMenuItem);
+            End;
          End;
       End;
       Sleep(500); // Just to wait for progressbar to get updated. { Ajmal }

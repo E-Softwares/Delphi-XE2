@@ -37,6 +37,7 @@ Const
    cParameterPick = '<ePick>';
    cParameterAll = '<eAll>';
    cInvalidBuildNumber = -1;
+   cInvalidBuildCaption = 'Invalid Builds';
 
    cGroupType_Application = 0;
    cGroupType_Folder = 1;
