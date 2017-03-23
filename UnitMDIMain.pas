@@ -126,7 +126,7 @@ Type
       PMItemNotes: TMenuItem;
       PMItemAddFromClipboard: TMenuItem;
       PMItemViewOrEditNotes: TMenuItem;
-    PMItemRunasAdministrator: TMenuItem;
+      PMItemRunasAdministrator: TMenuItem;
       Panel2: TPanel;
       Label4: TLabel;
       sEdtRecentItemCount: TSpinEdit;
@@ -250,7 +250,7 @@ Uses
 Const
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000116;
+   cApplication_Version = 01000117;
    cAppVersion = '1.0.0.16';
 
    cIMG_DELETE = 4;
