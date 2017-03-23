@@ -126,7 +126,7 @@ Type
       PMItemNotes: TMenuItem;
       PMItemAddFromClipboard: TMenuItem;
       PMItemViewOrEditNotes: TMenuItem;
-      PMItemExecutionMode: TMenuItem;
+    PMItemRunasAdministrator: TMenuItem;
       Panel2: TPanel;
       Label4: TLabel;
       sEdtRecentItemCount: TSpinEdit;
@@ -135,8 +135,6 @@ Type
       Label5: TLabel;
       cbGroupItems: TComboBox;
       ImageList_20: TImageList;
-      PMItemNormal: TMenuItem;
-      PMItemRunasAdministrator: TMenuItem;
       tskDlgUpdateList: TTaskDialog;
       bkGndUpdateAppList: TBackgroundWorker;
       Procedure sBtnBrowseConnectionClick(Sender: TObject);
@@ -169,7 +167,6 @@ Type
       procedure bkGndUpdateAppListWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
       procedure tskDlgUpdateListButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
       procedure bkGndUpdateAppListWorkProgress(Worker: TBackgroundWorker; PercentDone: Integer);
-      procedure PMItemRunasAdministratorClick(Sender: TObject);
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
@@ -925,13 +922,6 @@ Begin
    SaveConfig;
    Application.Terminate;
 End;
-
-procedure TFormMDIMain.PMItemRunasAdministratorClick(Sender: TObject);
-var
-   varMenuItem: TMenuItem Absolute Sender;
-begin
-   varMenuItem.Checked := True;
-end;
 
 Procedure TFormMDIMain.PMItemAddFromClipboardClick(Sender: TObject);
 Var

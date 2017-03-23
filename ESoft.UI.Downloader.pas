@@ -427,7 +427,7 @@ Procedure TFormDownloader.CreateParams(var aParams: TCreateParams);
 Begin
    Inherited;
 
-   If Owner = Application Then
+   If Owner <> FormMDIMain Then
       aParams.ExStyle := aParams.ExStyle Or WS_EX_APPWINDOW;
 End;
 

@@ -352,7 +352,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       end
       object chkMajor: TCheckBox
         Left = 15
-        Top = 24
+        Top = 53
         Width = 97
         Height = 17
         Caption = 'Major Version'
@@ -367,7 +367,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       end
       object chkMinor: TCheckBox
         Left = 119
-        Top = 24
+        Top = 53
         Width = 97
         Height = 17
         Caption = 'Minor Version'
@@ -382,7 +382,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       end
       object chkRelease: TCheckBox
         Left = 222
-        Top = 24
+        Top = 53
         Width = 97
         Height = 17
         Caption = 'Release Version'
@@ -397,7 +397,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       end
       object edtPrefix: TLabeledEdit
         Left = 53
-        Top = 52
+        Top = 22
         Width = 110
         Height = 21
         EditLabel.Width = 33
@@ -409,7 +409,6 @@ object FormAppGroupEditor: TFormAppGroupEditor
         EditLabel.Font.Name = 'Tahoma'
         EditLabel.Font.Style = [fsBold]
         EditLabel.ParentFont = False
-        Enabled = False
         LabelPosition = lpLeft
         LabelSpacing = 5
         TabOrder = 3
@@ -417,7 +416,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       end
       object edtSufix: TLabeledEdit
         Left = 210
-        Top = 52
+        Top = 22
         Width = 110
         Height = 21
         EditLabel.Width = 28
@@ -429,7 +428,6 @@ object FormAppGroupEditor: TFormAppGroupEditor
         EditLabel.Font.Name = 'Tahoma'
         EditLabel.Font.Style = [fsBold]
         EditLabel.ParentFont = False
-        Enabled = False
         LabelPosition = lpLeft
         LabelSpacing = 5
         TabOrder = 4

@@ -721,10 +721,16 @@ Function TEApplication.CopyFromSourceFolder: Boolean;
 var
    varDownloader: IEDownloadManager;
    bVisible: Boolean;
+   varParentForm: TForm;
 Begin
    Result := False;
    If Not Owner.NeedToCopy Then
       Exit(True);
+
+   If Assigned(FormParameterBrowser) And FormParameterBrowser.Visible Then
+      varParentForm := FormParameterBrowser
+   Else
+      varParentForm := FormMDIMain;
 
    bVisible := FormMDIMain.Visible;
    If Not (bVisible Or (Assigned(FormParameterBrowser) And FormParameterBrowser.Visible)) Then
@@ -733,13 +739,13 @@ Begin
      FormMDIMain.WindowState := wsMinimized;
    End;
    Try
-   If FileExists(Owner.SourceFolderCopyTo + FileName) And (MessageDlg('The file already exsit, do you want to download again ?', mtConfirmation, [mbYes, mbNo], 0, mbNo) = mrNo) Then
-      Exit(False);
+      If FileExists(Owner.SourceFolderCopyTo + FileName) And (MessageDlg('The file already exsit, do you want to download again ?', mtConfirmation, [mbYes, mbNo], 0, mbNo) = mrNo) Then
+         Exit(True);
    Finally
       FormMDIMain.Visible := bVisible;
    End;
 
-   varDownloader := TEDownloadManager.Create(Application.MainForm);
+   varDownloader := TEDownloadManager.Create(varParentForm);
    varDownloader.Add(Owner.SourceFolderPrefix + Owner.SourceFolder + FileName, Owner.SourceFolderCopyTo + FileName);
    Try
       Result := varDownloader.Download;

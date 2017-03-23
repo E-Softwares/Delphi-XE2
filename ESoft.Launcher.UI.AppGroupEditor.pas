@@ -203,10 +203,8 @@ End;
 
 Procedure TFormAppGroupEditor.chkMajorClick(Sender: TObject);
 Begin
-   edtPrefix.Enabled := chkMajor.Checked Or chkMinor.Checked Or chkRelease.Checked;
-   edtSufix.Enabled := edtPrefix.Enabled;
-   sEdtMainBranch.Enabled := edtPrefix.Enabled;
-   sEdtCurrBranch.Enabled := edtPrefix.Enabled;
+   sEdtMainBranch.Enabled := chkMajor.Checked Or chkMinor.Checked Or chkRelease.Checked;
+   sEdtCurrBranch.Enabled := sEdtMainBranch.Enabled;
    chkCreateFolderClick(Nil);
 End;
 
