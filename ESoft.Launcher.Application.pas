@@ -115,6 +115,7 @@ Type
       FMainBranch, FCurrentBranch, FNoOfBuilds: Integer;
 
       Function GetIsApplication: Boolean;
+      Function GetIsFolder: Boolean;
       Function GetActualName: String;
       Function GetISFixedParameter: Boolean;
       Function GetFixedParameter: String;
@@ -162,6 +163,7 @@ Type
       Property ISFixedParameter: Boolean Read GetISFixedParameter Write FISFixedParameter;
       Property LastUsedParamName: String Read GetLastUsedParamName Write SetLastUsedParamName;
       Property IsApplication: Boolean Read GetIsApplication;
+      Property IsFolder: Boolean Read GetIsFolder;
       Property DisplayLabel: String Read FDisplayLabel Write FDisplayLabel;
       Property Icon: TIcon Read GetIcon;
       Property IsMajorBranching: Boolean Read FIsMajorBranching Write FIsMajorBranching;
@@ -325,6 +327,11 @@ function TEApplicationGroup.GetISFixedParameter: Boolean;
 begin
    Result := FISFixedParameter;
 end;
+
+Function TEApplicationGroup.GetIsFolder: Boolean;
+Begin
+   Result := GroupType = cGroupType_Folder;
+End;
 
 Function TEApplicationGroup.GetLastUsedParamName: String;
 Begin

@@ -137,6 +137,10 @@ Type
       ImageList_20: TImageList;
       tskDlgUpdateList: TTaskDialog;
       bkGndUpdateAppList: TBackgroundWorker;
+      MItemImmediateUpdate: TMenuItem;
+      lblAppListNotUpdated: TLabel;
+      ActionListMain: TActionList;
+      actSendMailDeveloper: TSendMail;
       Procedure sBtnBrowseConnectionClick(Sender: TObject);
       Procedure edtConnectionRightButtonClick(Sender: TObject);
       Procedure FormCreate(Sender: TObject);
@@ -166,7 +170,8 @@ Type
       procedure bkGndUpdateAppListWork(Worker: TBackgroundWorker);
       procedure bkGndUpdateAppListWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
       procedure tskDlgUpdateListButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
-      procedure bkGndUpdateAppListWorkProgress(Worker: TBackgroundWorker; PercentDone: Integer);
+      Procedure bkGndUpdateAppListWorkProgress(Worker: TBackgroundWorker; PercentDone: Integer);
+      Procedure PanelDeveloperClick(Sender: TObject);
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
@@ -215,7 +220,7 @@ Type
       Procedure SaveConfig;
       Function BackupFolder: String;
       Procedure UpdateApplicationListInBackGround;
-      Procedure UpdateApplicationList;
+      Procedure UpdateApplicationList(const aForceUpdate: Boolean = False);
       Procedure ReloadFromIni;
       Procedure RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String; aSkipFromRecent: Boolean);
       procedure LoadParamCategories;
@@ -250,8 +255,8 @@ Uses
 Const
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000117;
-   cAppVersion = '1.0.0.17';
+   cApplication_Version = 01000118;
+   cAppVersion = '1.0.0.18';
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -259,6 +264,7 @@ Const
    cIMG_HIDE = 40;
    cIMG_SHOW = 41;
    cIMG_APPLICATION = 45;
+   cIMG_APP_UPDATE = 46;
    cIMG_PARENT_GROUP = 48;
    cIMG_GROUP = 54;
    cIMG_FILE_UNKNOWN = 55;
@@ -270,6 +276,7 @@ Const
    cIMG_FILE_LINK = 61;
    cIMG_FOLDER = 62;
    cIMG_URL = 63;
+   cIMG_APP_UPDATE_REQUIRED = 64;
 
    cGroupVisible_None = 0;
    cGroupVisible_All = 1;
@@ -289,11 +296,14 @@ Const
    cConfigDefaultHotKeyText = 'Alt+Q';
    cConfigRecentCount = 'RecentItemsCount';
    cConfigGroupItems = 'GroupItems';
+   cConfigImediateUpdate = 'ImediateUpdate';
 
    cBackups = 'Backups\';
 
 Resourcestring
    rsClearRecentItems = 'Clear';
+   rsUpdateApplication = 'Update';
+   rsUpdateApplicationRequired = 'Update [Required]';
 
    { TFormMDIMain }
 Procedure TFormMDIMain.ApplicationEventsActivate(Sender: TObject);
@@ -312,7 +322,7 @@ Begin
       Else
       Begin
          Visible := Not MItemStartMinimized.Checked;
-         UpdateApplicationList;
+         UpdateApplicationList(True);
          ClipboardItems.Load;
       End;
    End;
@@ -562,6 +572,7 @@ Begin
    Try
       MItemAutobackup.Checked := varIniFile.ReadBool(cConfigBasic, cConfigAutoBackUpOnExit, False);
       MItemStartMinimized.Checked := varIniFile.ReadBool(cConfigBasic, cConfigStartMinimized, True);
+      MItemImmediateUpdate.Checked := varIniFile.ReadBool(cConfigBasic, cConfigImediateUpdate, True);
       IsRunAsAdmin := varIniFile.ReadBool(cConfigBasic, cConfigRunAsAdmin, False);
       Connections.FileName := varIniFile.ReadString(cConfigBasic, cConfigFileName, '');
       hKeyGeneral.HotKey := TextToShortCut(varIniFile.ReadString(cConfigBasic, cConfigHotKey, cConfigDefaultHotKeyText));
@@ -875,7 +886,7 @@ Begin
       End;
    End
    Else
-      MessageDlg(Format(cNoNewAppVersionAvailablePrompt, [cAppVersion , sLineBreak]), mtInformation, [mbOK], 0);
+      MessageDlg(Format(cNoNewAppVersionAvailablePrompt, [cAppVersion]), mtInformation, [mbOK], 0);
 End;
 
 Procedure TFormMDIMain.PMItemViewOrEditNotesClick(Sender: TObject);
@@ -921,6 +932,11 @@ Procedure TFormMDIMain.PMItemExitClick(Sender: TObject);
 Begin
    SaveConfig;
    Application.Terminate;
+End;
+
+Procedure TFormMDIMain.PanelDeveloperClick(Sender: TObject);
+Begin
+   // actSendMailDeveloper.Execute;
 End;
 
 Procedure TFormMDIMain.PMItemAddFromClipboardClick(Sender: TObject);
@@ -975,17 +991,29 @@ End;
 
 Procedure TFormMDIMain.PMItemUpdateClick(Sender: TObject);
 Begin
-   UpdateApplicationList;
+   UpdateApplicationList(True);
 End;
 
 Procedure TFormMDIMain.PopupMenuListViewPopup(Sender: TObject);
 Begin
+   PMItemUpdate.ImageIndex := cIMG_APP_UPDATE;
+   If lblAppListNotUpdated.Visible Then
+      PMItemUpdate.ImageIndex := cIMG_APP_UPDATE_REQUIRED;
+      
    PMItemEditGroup.Enabled := Assigned(tvApplications.Selected) And Assigned(tvApplications.Selected.Data) And TObject(tvApplications.Selected.Data).InheritsFrom(TEApplicationGroup);
    PMItemDeleteGroup.Enabled := PMItemEditGroup.Enabled;
 End;
 
 Procedure TFormMDIMain.PopupMenuTrayPopup(Sender: TObject);
 Begin
+   PMItemTrayUpdate.Caption := rsUpdateApplication;
+   PMItemTrayUpdate.ImageIndex := cIMG_APP_UPDATE;
+   If lblAppListNotUpdated.Visible Then
+   Begin
+      PMItemTrayUpdate.Caption := rsUpdateApplicationRequired;
+      PMItemTrayUpdate.ImageIndex := cIMG_APP_UPDATE_REQUIRED;
+   End;
+
    PMItemApplications.Visible := cbGroupItems.ItemIndex In [cGroupVisible_All, cGroupVisible_ApplicationOnly];
    PMItemCategories.Visible := cbGroupItems.ItemIndex In [cGroupVisible_All, cGroupVisible_CategoryOnly];
    PMItemApplications.Enabled := PMItemApplications.Count > 0;
@@ -1028,7 +1056,7 @@ Begin
    EFreeAndNil(FParameters);
    EFreeAndNil(FAppGroups);
    EFreeAndNil(FTemplateGroups);
-   UpdateApplicationList;
+   UpdateApplicationList(True);
 End;
 
 Procedure TFormMDIMain.SaveConfig;
@@ -1042,6 +1070,7 @@ Begin
    Try
       varIniFile.WriteBool(cConfigBasic, cConfigAutoBackUpOnExit, MItemAutobackup.Checked);
       varIniFile.WriteBool(cConfigBasic, cConfigStartMinimized, MItemStartMinimized.Checked);
+      varIniFile.WriteBool(cConfigBasic, cConfigImediateUpdate, MItemImmediateUpdate.Checked);
       varIniFile.WriteBool(cConfigBasic, cConfigRunAsAdmin, IsRunAsAdmin);
       varIniFile.WriteString(cConfigBasic, cConfigHotKey, ShortCutToText(hKeyGeneral.HotKey));
       varIniFile.WriteInteger(cConfigBasic, cConfigRecentCount, sEdtRecentItemCount.Value);
@@ -1134,10 +1163,16 @@ Begin
       varSelectedNode.Selected := True;
 End;
 
-Procedure TFormMDIMain.UpdateApplicationList;
+Procedure TFormMDIMain.UpdateApplicationList(const aForceUpdate: Boolean);
 var
    bVisible: Boolean;
 begin
+   If not (aForceUpdate Or MItemImmediateUpdate.Checked) then 
+   Begin
+      lblAppListNotUpdated.Show;
+      Exit;
+   End;
+    
    bVisible := Visible;
    if not Visible then
    Begin
@@ -1149,6 +1184,7 @@ begin
       tskDlgUpdateList.ProgressBar.Max := AppGroups.Count;
       bkGndUpdateAppList.Execute;
       tskDlgUpdateList.Execute;
+      lblAppListNotUpdated.Hide;
    finally
       Visible := bVisible;
    end;
@@ -1354,7 +1390,12 @@ Begin
          Begin
             If bkGndUpdateAppList.CancellationPending Then
                Break;
-            varBranchMenuItem := _ApplicationBranch(varApp, varCurrMenuGroup);
+               
+            If varAppGrp.IsFolder Then
+               varBranchMenuItem := varCurrMenuGroup
+            Else 
+               varBranchMenuItem := _ApplicationBranch(varApp, varCurrMenuGroup);
+               
             If Assigned(varBranchMenuItem) Then
             Begin
               varCurrMenuItem := TMenuItem.Create(varBranchMenuItem);
