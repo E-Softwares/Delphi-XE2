@@ -255,8 +255,8 @@ Uses
 Const
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000118;
-   cAppVersion = '1.0.0.18';
+   cApplication_Version = 01000119;
+   cAppVersion = '1.0.0.19';
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -277,6 +277,12 @@ Const
    cIMG_FOLDER = 62;
    cIMG_URL = 63;
    cIMG_APP_UPDATE_REQUIRED = 64;
+   cIMG_FILE_PPT = 65;
+   cIMG_FILE_PUBLISHER = 66;
+   cIMG_FILE_ACCESSDB = 67;
+   cIMG_FILE_TEXT = 68;
+   cIMG_FILE_IMAGE = 69;
+   cIMG_FILE_VIDEO = 70;
 
    cGroupVisible_None = 0;
    cGroupVisible_All = 1;
@@ -378,7 +384,7 @@ end;
 
 Procedure TFormMDIMain.cbGroupItemsChange(Sender: TObject);
 Begin
-   PMItemUpdate.Click;
+   UpdateApplicationList;
 End;
 
 Procedure TFormMDIMain.edtConnectionRightButtonClick(Sender: TObject);
@@ -397,10 +403,10 @@ Procedure TFormMDIMain.FormCreate(Sender: TObject);
 Var
    iCntr: Integer;
 Begin
-   // Store the permenent menu into FixedItem list. { Ajmal }
-   // While updating the TrayIcon popup, we should not remove these menu items. { Ajmal }
    FPopupMenuClosed := True;
    DragAcceptFiles(Handle, True);
+   // Store the permenent menu into FixedItem list. { Ajmal }
+   // While updating the TrayIcon popup, we should not remove these menu items. { Ajmal }
    FFixedMenuItems := TList<TMenuItem>.Create;
    For iCntr := 0 To Pred(MenuItemApplications.Count) Do
       FFixedMenuItems.Add(MenuItemApplications[iCntr]);
@@ -500,6 +506,8 @@ begin
    Result := cIMG_FILE_UNKNOWN;
    If SameText(aExtension, '.pdf') Then
       Result := cIMG_FILE_PDF
+   Else If SameText(aExtension, '.txt') Then
+      Result := cIMG_FILE_TEXT
    Else If SameText(aExtension, '.zip') Then
       Result := cIMG_FILE_ZIP
    Else If SameText(aExtension, '.rar') Then
@@ -508,8 +516,18 @@ begin
       Result := cIMG_FILE_DOC
    Else If SameText(aExtension, '.xls') Or SameText(aExtension, '.xlsx') Then
       Result := cIMG_FILE_EXCEL
+   Else If SameText(aExtension, '.ppt') Or SameText(aExtension, '.pptx') Then
+      Result := cIMG_FILE_PPT
+   Else If SameText(aExtension, '.pub') Then
+      Result := cIMG_FILE_PUBLISHER
+   Else If SameText(aExtension, '.accdb') Then
+      Result := cIMG_FILE_ACCESSDB
    Else If SameText(aExtension, '.mp3') Then
       Result := cIMG_FILE_MUSIC
+   Else If SameText(aExtension, '.jpg') Or SameText(aExtension, '.jpeg') Or SameText(aExtension, '.png') Or SameText(aExtension, '.bmp') Then
+      Result := cIMG_FILE_IMAGE
+   Else If SameText(aExtension, '.mp4') Or SameText(aExtension, '.avi') Or SameText(aExtension, '.wmv') Then
+      Result := cIMG_FILE_VIDEO
    Else If SameText(aExtension, '.lnk') Then
       Result := cIMG_FILE_LINK;
 end;
@@ -1318,7 +1336,7 @@ Var
    varCurrMenuGroup, varCurrMenuItem, varBranchMenuItem: TMenuItem;
    varGroupNames: TArray<String>;
    sCurrGroupName: String;
-   iCurrGrpImageIndex: Integer;
+   iCurrGrpImageIndex, iCurrentItemImgIndex: Integer;
    iCntr, iProgressCntr: Integer;
    varIcon: TIcon;
 Begin
@@ -1405,8 +1423,24 @@ Begin
               If iCurrGrpImageIndex <> cIMG_NONE Then
                  imlAppIcons.GetBitmap(iCurrGrpImageIndex, varCurrMenuItem.Bitmap)
               Else
+              Begin
                 varCurrMenuItem.ImageIndex := GetImageIndexForFileExt(varApp.Extension);
-              varBranchMenuItem.Add(varCurrMenuItem);
+                if varCurrMenuItem.ImageIndex = cIMG_FILE_UNKNOWN then
+                Begin
+                  varCurrMenuItem.Caption := varApp.FileName;
+                  varIcon := varApp.Icon;
+                  iCurrentItemImgIndex := imlAppIcons.AddIcon(varIcon);
+                  imlAppIcons.GetBitmap(iCurrentItemImgIndex, varCurrMenuItem.Bitmap);
+                  If Assigned(varCurrMenuItem.Bitmap) Then
+                     varCurrMenuItem.ImageIndex := cIMG_NONE;
+                End;
+              End;
+
+              // For folder, we need the files to be order in accending. { Ajmal }
+              If varAppGrp.IsFolder Then
+                varBranchMenuItem.Insert(0, varCurrMenuItem)
+              Else
+                varBranchMenuItem.Add(varCurrMenuItem);
             End;
          End;
       End;

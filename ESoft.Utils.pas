@@ -43,6 +43,8 @@ Function GetAppVersionFromSite(Const aUniqueAppCode: String; Const aLink: String
 Procedure EFreeAndNil(Var AObj);
 Procedure EFlashWindow(hWnd: HWND);
 Procedure FetchIcon(Const aFileName: String; Const aIcon: TIcon);
+Procedure FetchAssociatedIcon(Const aFileName: String; Const aIcon: TIcon);
+Function GetAssociation(const aFileName: String): String;
 
 Implementation
 
@@ -212,5 +214,37 @@ Begin
    Win32Check(iExtractedIconCount = 2);
    aIcon.Handle := varSmallIcon;
 End;
+
+Procedure FetchAssociatedIcon(Const aFileName: String; Const aIcon: TIcon);
+var
+  iFilter: Word;
+Begin
+   iFilter := 0;
+   aIcon.Handle := ExtractAssociatedIcon(HInstance, PChar(aFileName), iFilter);
+End;
+
+Function GetAssociation(const aFileName: String): String;
+var
+  sFileClass: String;
+  varReg: TRegistry;
+begin
+  Result := '';
+  varReg := TRegistry.Create(KEY_EXECUTE);
+  varReg.RootKey := HKEY_CLASSES_ROOT;
+  sFileClass := '';
+  if varReg.OpenKeyReadOnly(ExtractFileExt(aFileName)) then
+  begin
+    sFileClass := varReg.ReadString('');
+    varReg.CloseKey;
+  end;
+  if sFileClass <> '' then begin
+    if varReg.OpenKeyReadOnly(sFileClass + '\Shell\Open\Command') then
+    begin
+      Result := varReg.ReadString('');
+      varReg.CloseKey;
+    end;
+  end;
+  varReg.Free;
+end;
 
 End.

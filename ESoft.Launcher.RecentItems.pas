@@ -27,8 +27,10 @@ Type
       Function RunExecutable(aParameter: String = ''): Boolean;
       Function UnZip: Boolean;
       Function CopyFromSourceFolder: Boolean;
+      Function GetIcon: TIcon;
 
       Property ActualName: String Read GetActualName;
+      Property Icon: TIcon Read GetIcon;
       Property ISFixedParameter: Boolean Read GetISFixedParameter;
       Property FixedParameter: String Read GetFixedParameter;
       Property LastUsedParamName: String Read GetLastUsedParamName Write SetLastUsedParamName;

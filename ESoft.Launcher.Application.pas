@@ -58,7 +58,9 @@ Type
       FFileName: String;
       FVersionName: TStringDynArray;
       FLastUsedParamName: String; // This we reset with application restart { Ajmal }
+      FIcon: TIcon;
 
+      Function GetIcon: TIcon;
       Function GetActualName: String;
       Function GetISFixedParameter: Boolean;
       Function GetFixedParameter: String;
@@ -66,9 +68,9 @@ Type
       procedure SetLastUsedParamName(const aValue: String);
       Function GetFileName(aType: eTAppFile): String;
       Procedure SetOwner(Const Value: TEApplicationGroup);
-
    Public
       Constructor Create(Const aOwner: TEApplicationGroup);
+      Destructor Destroy; override;
 
       Function QueryInterface(Const IID: TGUID; Out Obj): HRESULT; Stdcall;
       Function _AddRef: Integer; Stdcall;
@@ -91,12 +93,12 @@ Type
       Property Extension: String Index eafExtension Read GetFileName;
       Property FileName: String Index eafFileName Read GetFileName Write FFileName;
       Property IsFixedParameter: Boolean Read GetISFixedParameter;
+      Property Icon: TIcon Read GetIcon;
    End;
 
    TEApplications = Class(TObjectList<TEApplication>);
 
    TEApplicationGroup = Class(TEApplications, IEApplication)
-      // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
       FGroupType: Integer;
@@ -303,11 +305,11 @@ Begin
       sFileName := DestFolder + ExecutableName;
 
    EFreeAndNil(FIcon);
+   If Not FileExists(sFileName) Then
+    Exit;
+
    If ExtractFileExt(sFileName) = '' Then
       Exit;
-
-   If not FileExists(sFileName) Then
-    Exit;
 
    FIcon := TIcon.Create;
    Try
@@ -643,6 +645,13 @@ Begin
    FLastUsedParamName := '';
 End;
 
+destructor TEApplication.Destroy;
+begin
+  EFreeAndNil(FIcon);
+
+  inherited;
+end;
+
 Function TEApplication.GetActualName: String;
 Begin
    Result := Name;
@@ -664,6 +673,32 @@ function TEApplication.GetFixedParameter: String;
 begin
    Result := Owner.FixedParameter;
 end;
+
+Function TEApplication.GetIcon: TIcon;
+Var
+   sFileName: String;
+Begin
+   Result := Nil;
+
+   If Not Owner.IsFolder Then
+      Exit;
+
+   sFileName := TargetFolder + FileName;
+   EFreeAndNil(FIcon);
+   If Not FileExists(sFileName) Then
+    Exit;
+
+   If ExtractFileExt(sFileName) = '' Then
+      Exit;
+
+   FIcon := TIcon.Create;
+   Try
+      FetchAssociatedIcon(sFileName, FIcon);
+      Result := FIcon;
+   Except
+      // Do nothing, it's not mandatory to have icon { Ajmal }
+   End;
+End;
 
 function TEApplication.GetISFixedParameter: Boolean;
 begin
@@ -811,11 +846,17 @@ Begin
 End;
 
 Function TEApplication.TargetFolder: String;
+var
+  sPath: String;
 Begin
-   If Owner.CreateFolder Then
-      Result := IncludeTrailingBackslash(Owner.DestFolder) + TargetBranchPath + Name
+   If Owner.IsFolder Then
+      sPath := IncludeTrailingBackslash(Owner.SourceFolder)
    Else
-      Result := Owner.DestFolder;
+      sPath := IncludeTrailingBackslash(Owner.DestFolder);
+   If Owner.CreateFolder Then
+      Result := sPath + TargetBranchPath + Name
+   Else
+      Result := sPath;
 End;
 
 Function TEApplication.UnZip: Boolean;
