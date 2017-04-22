@@ -511,7 +511,9 @@ end;
 
 Function TEApplicationGroup.TargetFolder: String;
 Begin
-   If CreateFolder Then
+   If IsFolder Then
+      Result := SourceFolder
+   Else If CreateFolder Then
       Result := DestFolder // + Copy(ExecutableName, 1, Length(FFileName) - Length(ExtractFileExt(FFileName)))
    Else
       Result := DestFolder;
@@ -849,10 +851,7 @@ Function TEApplication.TargetFolder: String;
 var
   sPath: String;
 Begin
-   If Owner.IsFolder Then
-      sPath := IncludeTrailingBackslash(Owner.SourceFolder)
-   Else
-      sPath := IncludeTrailingBackslash(Owner.DestFolder);
+   sPath := IncludeTrailingBackslash(Owner.TargetFolder);
    If Owner.CreateFolder Then
       Result := sPath + TargetBranchPath + Name
    Else

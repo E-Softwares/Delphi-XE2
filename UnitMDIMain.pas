@@ -210,6 +210,7 @@ Type
       Function GetImageIndexForFileExt(Const aExtension: String): Integer;
       Function GetAppGroupTemplates: TEApplicationGroups;
       Function GetParamCategories: TStringList;
+      Procedure OpenParentFolderClick(aSender: TObject);
    protected
       procedure WndProc(var aMessage: TMessage); override;
       procedure WMHotKey(var Msg: TWMHotKey); Message WM_HOTKEY;
@@ -255,8 +256,8 @@ Uses
 Const
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000119;
-   cAppVersion = '1.0.0.19';
+   cApplication_Version = 01000120;
+   cAppVersion = '1.0.1.20';
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -835,6 +836,16 @@ Begin
    End;
 End;
 
+procedure TFormMDIMain.OpenParentFolderClick(aSender: TObject);
+var
+   varAppGroup: TEApplicationGroup;
+begin
+   varAppGroup := Pointer(TMenuItem(aSender).Tag);
+
+   If Assigned(varAppGroup) Then
+      ShellExecute(Handle, 'open', PWideChar(varAppGroup.TargetFolder), '', '', SW_SHOWMAXIMIZED);
+end;
+
 Procedure TFormMDIMain.PMItemAddGroupClick(Sender: TObject);
 Begin
    If TFormAppGroupEditor.CreatGroupFromFile  = mrOk Then
@@ -1339,8 +1350,10 @@ Var
    iCurrGrpImageIndex, iCurrentItemImgIndex: Integer;
    iCntr, iProgressCntr: Integer;
    varIcon: TIcon;
+   iFolderFixedMenuCount: Integer;
 Begin
    varIcon := Nil;
+   iFolderFixedMenuCount := 0;
    tvApplications.Items.Clear;
    _ClearMenuItems;
    imlAppIcons.Clear;
@@ -1404,6 +1417,18 @@ Begin
 
          varAppGrp.LoadApplications;
          varCurrMenuGroup.Enabled := varAppGrp.Count > 0;
+
+         If varAppGrp.IsFolder Then
+         Begin
+            varCurrMenuItem := _AddMenu('Open Folder', Nil, varCurrMenuGroup);
+            varCurrMenuItem.ImageIndex := cIMG_FILE_LINK;
+            varCurrMenuItem.Tag := NativeInt(varAppGrp);
+            varCurrMenuItem.OnClick := OpenParentFolderClick;
+            _AddMenu('-', Nil, varCurrMenuGroup);
+
+            iFolderFixedMenuCount := varCurrMenuGroup.Count;
+         End;
+
          For varApp In varAppGrp Do
          Begin
             If bkGndUpdateAppList.CancellationPending Then
@@ -1411,7 +1436,7 @@ Begin
                
             If varAppGrp.IsFolder Then
                varBranchMenuItem := varCurrMenuGroup
-            Else 
+            Else
                varBranchMenuItem := _ApplicationBranch(varApp, varCurrMenuGroup);
                
             If Assigned(varBranchMenuItem) Then
@@ -1438,7 +1463,7 @@ Begin
 
               // For folder, we need the files to be order in accending. { Ajmal }
               If varAppGrp.IsFolder Then
-                varBranchMenuItem.Insert(0, varCurrMenuItem)
+                varBranchMenuItem.Insert(iFolderFixedMenuCount, varCurrMenuItem)
               Else
                 varBranchMenuItem.Add(varCurrMenuItem);
             End;
