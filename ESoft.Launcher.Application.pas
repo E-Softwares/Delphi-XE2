@@ -48,6 +48,7 @@ Type
 
 Type
    TEApplicationGroup = Class;
+   TEApplicationGroups = Class;
 
    TEApplication = Class(TPersistent, IEApplication)
    Private
@@ -115,6 +116,7 @@ Type
       FIsMajorBranching, FIsMinorBranching, FIsReleaseBranching: Boolean;
       FBranchingPrefix, FBranchingSufix: String;
       FMainBranch, FCurrentBranch, FNoOfBuilds: Integer;
+      FSubItems: TEApplicationGroups;
 
       Function GetIsApplication: Boolean;
       Function GetIsFolder: Boolean;
@@ -130,8 +132,9 @@ Type
       Function AddItem: TEApplication;
       Function InsertItem(Const aIndex: Integer): TEApplication;
       Function GetIcon: TIcon;
-      Function GetFinalSourceFolder: String;  
+      Function GetFinalSourceFolder: String;
       procedure SetSourceFolderPrefix(const Value: String);
+      Function GetSubItems: TEApplicationGroups;
    Public
       Constructor Create;
       Destructor Destroy; Override;
@@ -178,9 +181,9 @@ Type
       Property CurrentBranch: Integer Read FCurrentBranch Write FCurrentBranch;
       Property CreateBranchFolder: Boolean Read FCreateBranchFolder Write FCreateBranchFolder;
       Property GroupType: Integer Read FGroupType Write FGroupType;
+      Property SubItems: TEApplicationGroups Read GetSubItems;
    End;
 
-Type
    TEApplicationGroups = Class(TObjectDictionary<String, TEApplicationGroup>)
    Private
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
@@ -259,6 +262,7 @@ End;
 
 Destructor TEApplicationGroup.Destroy;
 Begin
+   EFreeAndNil(FSubItems);
    EFreeAndNil(FIcon);
 
    Inherited;
@@ -340,14 +344,48 @@ Begin
    Result := FLastUsedParamName;
 End;
 
+Function TEApplicationGroup.GetSubItems: TEApplicationGroups;
+Begin
+   If Not Assigned(FSubItems) Then
+      FSubItems := TEApplicationGroups.Create;
+   Result := FSubItems;
+End;
+
 Procedure TEApplicationGroup.LoadApplications;
 Var
    varSearch: TSearchRec;
+   varAppGroup: TEApplicationGroup;
+   sCurrPath: String;
 Begin
    Clear;
+   SubItems.Clear;
+
+   sCurrPath := IncludeTrailingBackslash(SourceFolder);
    If SourceFolder <> '' Then
    Begin
-      If FindFirst(SourceFolder + FileMask, faArchive, varSearch) = 0 Then
+      If IsFolder And (FindFirst(SourceFolder + FileMask, faDirectory, varSearch) = 0) Then
+      Begin
+         Repeat
+            If DirectoryExists(sCurrPath + varSearch.Name) Then
+            Begin
+               If (varSearch.Name <> '.') And (varSearch.Name <> '..') then
+               Begin
+                  varAppGroup := SubItems.AddItem(varSearch.Name);
+                  varAppGroup.GroupType := cGroupType_Folder;
+                  varAppGroup.FileMask := FileMask;
+                  varAppGroup.SourceFolder := IncludeTrailingBackslash(sCurrPath + varSearch.Name);
+                  varAppGroup.SkipFromRecent := SkipFromRecent;
+                  varAppGroup.ISFixedParameter := ISFixedParameter;
+                  varAppGroup.FixedParameter := FixedParameter;
+                  varAppGroup.LoadApplications;
+               End;
+            End
+            Else
+               InsertItem(0).FileName := varSearch.Name;
+         Until FindNext(varSearch) <> 0;
+         FindClose(varSearch);
+      End
+      Else If FindFirst(SourceFolder + FileMask, faArchive, varSearch) = 0 Then
       Begin
          Repeat
             InsertItem(0).FileName := varSearch.Name;

@@ -256,8 +256,8 @@ Uses
 Const
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000120;
-   cAppVersion = '1.0.1.20';
+   cApplication_Version = 01000121;
+   cAppVersion = '1.0.1.21';
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -523,7 +523,7 @@ begin
       Result := cIMG_FILE_PUBLISHER
    Else If SameText(aExtension, '.accdb') Then
       Result := cIMG_FILE_ACCESSDB
-   Else If SameText(aExtension, '.mp3') Then
+   Else If SameText(aExtension, '.mp3') Or SameText(aExtension, '.wma') Then
       Result := cIMG_FILE_MUSIC
    Else If SameText(aExtension, '.jpg') Or SameText(aExtension, '.jpeg') Or SameText(aExtension, '.png') Or SameText(aExtension, '.bmp') Then
       Result := cIMG_FILE_IMAGE
@@ -1339,15 +1339,96 @@ Var
          Result := _AddMenu(Format('Builds [%d-%d]', [aApplication.BuildNumber, aApplication.BuildNumber]), Nil, Result);
    End;
 
+   Procedure _AddApplications(Const aAppGroup: TEApplicationGroup;
+      Const aCurrentMenuGroup: TMenuItem; Const aFixedMenuCount: Integer);
+   var
+      varApp: TEApplication;
+      varCurrMenuItem, varBranchMenuItem: TMenuItem;
+      iCurrGrpImageIndex, iCurrentItemImgIndex: Integer;
+      varIcon: TIcon;
+   Begin
+      iCurrGrpImageIndex := cIMG_NONE;
+      For varApp In aAppGroup Do
+      Begin
+         If bkGndUpdateAppList.CancellationPending Then
+            Break;
+
+         If aAppGroup.IsFolder Then
+            varBranchMenuItem := aCurrentMenuGroup
+         Else
+            varBranchMenuItem := _ApplicationBranch(varApp, aCurrentMenuGroup);
+
+         If Assigned(varBranchMenuItem) Then
+         Begin
+            varCurrMenuItem := TMenuItem.Create(varBranchMenuItem);
+            varCurrMenuItem.Caption := varApp.Name;
+            varCurrMenuItem.Tag := NativeInt(varApp);
+            varCurrMenuItem.OnClick := tvApplicationsDblClick;
+            If iCurrGrpImageIndex <> cIMG_NONE Then
+               imlAppIcons.GetBitmap(iCurrGrpImageIndex, varCurrMenuItem.Bitmap)
+            Else
+            Begin
+               varCurrMenuItem.ImageIndex := GetImageIndexForFileExt(varApp.Extension);
+               if varCurrMenuItem.ImageIndex = cIMG_FILE_UNKNOWN then
+               Begin
+                  varCurrMenuItem.Caption := varApp.FileName;
+                  varIcon := varApp.Icon;
+                  If Assigned(varIcon) Then
+                  Begin
+                     iCurrentItemImgIndex := imlAppIcons.AddIcon(varIcon);
+                     imlAppIcons.GetBitmap(iCurrentItemImgIndex, varCurrMenuItem.Bitmap);
+                     If Assigned(varCurrMenuItem.Bitmap) Then
+                        varCurrMenuItem.ImageIndex := cIMG_NONE;
+                  End;
+               End;
+            End;
+
+            // For folder, we need the files to be order in accending. { Ajmal }
+            If aAppGroup.IsFolder Then
+               varBranchMenuItem.Insert(aFixedMenuCount, varCurrMenuItem)
+            Else
+               varBranchMenuItem.Add(varCurrMenuItem);
+         End;
+      End;
+   End;
+
+   Function _AddFolders(Const aAppGroup: TEApplicationGroup; Const aCurrMenuGroup: TMenuItem): Integer;
+   var
+      varCurrMenuItem, varSubMenuItem: TMenuItem;
+      varSubAppGroup: TEApplicationGroup;
+      iFolderFixedMenuCount: Integer;
+   Begin
+      Result := 0;
+      If Not aAppGroup.IsFolder Then
+         Exit;
+
+      aCurrMenuGroup.ImageIndex := cIMG_FOLDER;
+      varCurrMenuItem := _AddMenu('Open Folder', Nil, aCurrMenuGroup);
+      varCurrMenuItem.ImageIndex := cIMG_FILE_LINK;
+      varCurrMenuItem.Tag := NativeInt(aAppGroup);
+      varCurrMenuItem.OnClick := OpenParentFolderClick;
+      // _AddMenu('-', Nil, aCurrMenuGroup);
+
+      For varSubAppGroup In aAppGroup.SubItems.Values Do
+      Begin
+         varSubMenuItem := _AddMenu(varSubAppGroup.Name, Nil, aCurrMenuGroup);
+         varSubMenuItem.ImageIndex := cIMG_FOLDER;
+         iFolderFixedMenuCount := _AddFolders(varSubAppGroup, varSubMenuItem);
+         _AddApplications(varSubAppGroup, varSubMenuItem, iFolderFixedMenuCount);
+      End;
+
+      _AddMenu('-', Nil, aCurrMenuGroup);
+      Result := aCurrMenuGroup.Count;
+   End;
+
 Var
    varAppGrp: TEApplicationGroup;
-   varApp: TEApplication;
    iCurrGroupID: Integer;
    varCurrNode, varParentNode, varCurrLabelNode: TTreeNode;
-   varCurrMenuGroup, varCurrMenuItem, varBranchMenuItem: TMenuItem;
+   varCurrMenuGroup, varCurrMenuItem: TMenuItem;
    varGroupNames: TArray<String>;
    sCurrGroupName: String;
-   iCurrGrpImageIndex, iCurrentItemImgIndex: Integer;
+   iCurrGrpImageIndex: Integer;
    iCntr, iProgressCntr: Integer;
    varIcon: TIcon;
    iFolderFixedMenuCount: Integer;
@@ -1418,56 +1499,8 @@ Begin
          varAppGrp.LoadApplications;
          varCurrMenuGroup.Enabled := varAppGrp.Count > 0;
 
-         If varAppGrp.IsFolder Then
-         Begin
-            varCurrMenuItem := _AddMenu('Open Folder', Nil, varCurrMenuGroup);
-            varCurrMenuItem.ImageIndex := cIMG_FILE_LINK;
-            varCurrMenuItem.Tag := NativeInt(varAppGrp);
-            varCurrMenuItem.OnClick := OpenParentFolderClick;
-            _AddMenu('-', Nil, varCurrMenuGroup);
-
-            iFolderFixedMenuCount := varCurrMenuGroup.Count;
-         End;
-
-         For varApp In varAppGrp Do
-         Begin
-            If bkGndUpdateAppList.CancellationPending Then
-               Break;
-               
-            If varAppGrp.IsFolder Then
-               varBranchMenuItem := varCurrMenuGroup
-            Else
-               varBranchMenuItem := _ApplicationBranch(varApp, varCurrMenuGroup);
-               
-            If Assigned(varBranchMenuItem) Then
-            Begin
-              varCurrMenuItem := TMenuItem.Create(varBranchMenuItem);
-              varCurrMenuItem.Caption := varApp.Name;
-              varCurrMenuItem.Tag := NativeInt(varApp);
-              varCurrMenuItem.OnClick := tvApplicationsDblClick;
-              If iCurrGrpImageIndex <> cIMG_NONE Then
-                 imlAppIcons.GetBitmap(iCurrGrpImageIndex, varCurrMenuItem.Bitmap)
-              Else
-              Begin
-                varCurrMenuItem.ImageIndex := GetImageIndexForFileExt(varApp.Extension);
-                if varCurrMenuItem.ImageIndex = cIMG_FILE_UNKNOWN then
-                Begin
-                  varCurrMenuItem.Caption := varApp.FileName;
-                  varIcon := varApp.Icon;
-                  iCurrentItemImgIndex := imlAppIcons.AddIcon(varIcon);
-                  imlAppIcons.GetBitmap(iCurrentItemImgIndex, varCurrMenuItem.Bitmap);
-                  If Assigned(varCurrMenuItem.Bitmap) Then
-                     varCurrMenuItem.ImageIndex := cIMG_NONE;
-                End;
-              End;
-
-              // For folder, we need the files to be order in accending. { Ajmal }
-              If varAppGrp.IsFolder Then
-                varBranchMenuItem.Insert(iFolderFixedMenuCount, varCurrMenuItem)
-              Else
-                varBranchMenuItem.Add(varCurrMenuItem);
-            End;
-         End;
+         iFolderFixedMenuCount := _AddFolders(varAppGrp, varCurrMenuGroup);
+         _AddApplications(varAppGrp, varCurrMenuGroup, iFolderFixedMenuCount);
       End;
       Sleep(500); // Just to wait for progressbar to get updated. { Ajmal }
       
