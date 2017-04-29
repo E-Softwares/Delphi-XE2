@@ -76,6 +76,8 @@ Type
       sBtnBrowseAppSourceCopy: TSpeedButton;
       edtAppSourceCopy: TButtonedEdit;
       cbSourcePrifix: TComboBox;
+      BalloonHint: TBalloonHint;
+      chkRunAsAdmin: TCheckBox;
       Procedure sBtnBrowseAppSourceClick(Sender: TObject);
       Procedure btnOKClick(Sender: TObject);
       Procedure FormActivate(Sender: TObject);
@@ -94,6 +96,7 @@ Type
       procedure chkParameterClick(Sender: TObject);
       procedure cbFixedParamsSelect(Sender: TObject);
       procedure edtAppSourceCopyChange(Sender: TObject);
+      Procedure chkRunAsAdminClick(Sender: TObject);
    Private
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
@@ -215,6 +218,15 @@ Begin
    Else
       cbFixedParams.Style := csDropDownList;
 End;
+
+procedure TFormAppGroupEditor.chkRunAsAdminClick(Sender: TObject);
+begin
+   Case chkRunAsAdmin.State Of
+      cbUnchecked: chkRunAsAdmin.Caption := ' Run as Admin [Never]';
+      cbChecked: chkRunAsAdmin.Caption := ' Run as Admin [Always]';
+      cbGrayed: chkRunAsAdmin.Caption := ' Run as Admin [Inherited]';
+   End;
+end;
 
 Constructor TFormAppGroupEditor.Create(aOwner: TComponent; Const aAppGroup: TEApplicationGroup);
 Begin
@@ -353,9 +365,7 @@ Procedure TFormAppGroupEditor.LoadData(Const aAppGroup: TEApplicationGroup; Cons
 
 Begin
    If Not aIsTemplate Then
-   Begin
       edtGroupName.Text := aAppGroup.Name;
-   End;
 
    With aAppGroup Do
    Begin
@@ -379,6 +389,7 @@ Begin
 
    chkCreateFolder.Checked := aAppGroup.CreateFolder;
    chkSkipRecent.Checked := aAppGroup.SkipFromRecent;
+   chkRunAsAdmin.State := aAppGroup.RunAsAdmin;
    chkMajor.Checked := aAppGroup.IsMajorBranching;
    chkMinor.Checked := aAppGroup.IsMinorBranching;
    chkRelease.Checked := aAppGroup.IsReleaseBranching;
@@ -389,6 +400,7 @@ Begin
    sEdtCurrBranch.Value := aAppGroup.CurrentBranch;
 
    cbGroupTypeChange(Nil);
+   chkRunAsAdminClick(chkRunAsAdmin);
 End;
 
 Procedure TFormAppGroupEditor.PMItemSaveTemplateClick(Sender: TObject);
@@ -471,6 +483,7 @@ Begin
    aAppGroup.FileMask := edtFileMask.Text;
    aAppGroup.CreateFolder := chkCreateFolder.Enabled And chkCreateFolder.Checked;
    aAppGroup.SkipFromRecent := chkSkipRecent.Checked;
+   aAppGroup.RunAsAdmin := chkRunAsAdmin.State;
    aAppGroup.GroupType := cbGroupType.ItemIndex;
 
    aAppGroup.IsMajorBranching := chkMajor.Checked;

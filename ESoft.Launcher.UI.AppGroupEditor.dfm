@@ -98,7 +98,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object Label1: TLabel
       Left = 17
-      Top = 45
+      Top = 18
       Width = 32
       Height = 13
       Caption = 'Name'
@@ -124,7 +124,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object Label7: TLabel
       Left = 17
-      Top = 18
+      Top = 45
       Width = 52
       Height = 13
       Caption = 'Category'
@@ -166,7 +166,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       RightButton.ImageIndex = 34
       RightButton.PressedImageIndex = 4
       RightButton.Visible = True
-      TabOrder = 4
+      TabOrder = 5
       TextHint = 'Source Folder'
       OnRightButtonClick = edtAppSourceRightButtonClick
     end
@@ -180,7 +180,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       RightButton.ImageIndex = 34
       RightButton.PressedImageIndex = 4
       RightButton.Visible = True
-      TabOrder = 5
+      TabOrder = 7
       TextHint = 'Target Folder'
       OnChange = edtAppDestChange
       OnRightButtonClick = edtAppSourceRightButtonClick
@@ -190,11 +190,17 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Top = 177
       Width = 150
       Height = 21
+      Hint = 'Multi format using ";" [*.mp3;*.wma]. Use "*" for folder only.'
+      CustomHint = BalloonHint
       Images = FormMDIMain.ImageList_Ord
+      LeftButton.CustomHint = BalloonHint
+      ParentShowHint = False
+      RightButton.CustomHint = BalloonHint
       RightButton.ImageIndex = 34
       RightButton.PressedImageIndex = 4
       RightButton.Visible = True
-      TabOrder = 6
+      ShowHint = True
+      TabOrder = 8
       Text = '*.*'
       TextHint = 'File Mask'
       OnChange = edtFileMaskChange
@@ -220,30 +226,30 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object btnCancel: TButton
       Left = 275
-      Top = 386
+      Top = 385
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = 'Cancel'
       ModalResult = 2
-      TabOrder = 10
+      TabOrder = 13
       TabStop = False
     end
     object btnOK: TButton
       Left = 194
-      Top = 386
+      Top = 385
       Width = 75
       Height = 25
       Anchors = [akRight, akBottom]
       Caption = 'OK'
       Default = True
-      TabOrder = 11
+      TabOrder = 14
       TabStop = False
       OnClick = btnOKClick
     end
     object edtGroupName: TButtonedEdit
       Left = 100
-      Top = 42
+      Top = 15
       Width = 250
       Height = 21
       Images = FormMDIMain.ImageList_Ord
@@ -263,7 +269,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Width = 129
       Height = 21
       Style = csDropDownList
-      TabOrder = 8
+      TabOrder = 10
       TextHint = 'Fixed Prameter'
       OnSelect = cbFixedParamsSelect
     end
@@ -272,20 +278,22 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Top = 179
       Width = 90
       Height = 17
+      TabStop = False
       Caption = ' Create Folder'
       Checked = True
       State = cbChecked
-      TabOrder = 7
+      TabOrder = 9
       OnClick = chkCreateFolderClick
     end
     object cbGroupType: TComboBox
-      Left = 264
+      Left = 261
       Top = 69
-      Width = 86
+      Width = 89
       Height = 21
       Style = csDropDownList
       ItemIndex = 2
       TabOrder = 3
+      TabStop = False
       Text = 'Zip Files'
       OnChange = cbGroupTypeChange
       Items.Strings = (
@@ -295,8 +303,8 @@ object FormAppGroupEditor: TFormAppGroupEditor
     end
     object cbDisplayLabel: TComboBox
       Left = 100
-      Top = 15
-      Width = 250
+      Top = 42
+      Width = 105
       Height = 21
       TabOrder = 0
       OnKeyPress = edtGroupNameKeyPress
@@ -307,7 +315,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Width = 333
       Height = 141
       Caption = '  Branching  '
-      TabOrder = 9
+      TabOrder = 12
       object Label8: TLabel
         Left = 177
         Top = 82
@@ -355,6 +363,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Top = 53
         Width = 97
         Height = 17
+        TabStop = False
         Caption = 'Major Version'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -362,7 +371,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
-        TabOrder = 0
+        TabOrder = 5
         OnClick = chkMajorClick
       end
       object chkMinor: TCheckBox
@@ -370,6 +379,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Top = 53
         Width = 97
         Height = 17
+        TabStop = False
         Caption = 'Minor Version'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -377,7 +387,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
-        TabOrder = 1
+        TabOrder = 6
         OnClick = chkMajorClick
       end
       object chkRelease: TCheckBox
@@ -385,6 +395,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Top = 53
         Width = 97
         Height = 17
+        TabStop = False
         Caption = 'Release Version'
         Font.Charset = DEFAULT_CHARSET
         Font.Color = clWindowText
@@ -392,7 +403,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Font.Name = 'Tahoma'
         Font.Style = []
         ParentFont = False
-        TabOrder = 2
+        TabOrder = 7
         OnClick = chkMajorClick
       end
       object edtPrefix: TLabeledEdit
@@ -411,7 +422,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         EditLabel.ParentFont = False
         LabelPosition = lpLeft
         LabelSpacing = 5
-        TabOrder = 3
+        TabOrder = 0
         TextHint = 'Prefix'
       end
       object edtSufix: TLabeledEdit
@@ -430,7 +441,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         EditLabel.ParentFont = False
         LabelPosition = lpLeft
         LabelSpacing = 5
-        TabOrder = 4
+        TabOrder = 1
         TextHint = 'Sufix'
       end
       object sEdtMainBranch: TSpinEdit
@@ -441,7 +452,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Enabled = False
         MaxValue = 9999
         MinValue = 0
-        TabOrder = 5
+        TabOrder = 3
         Value = 0
       end
       object sEdtNoOfBuilds: TSpinEdit
@@ -451,7 +462,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Height = 22
         MaxValue = 25
         MinValue = 0
-        TabOrder = 6
+        TabOrder = 4
         Value = 25
       end
       object sEdtCurrBranch: TSpinEdit
@@ -462,7 +473,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Enabled = False
         MaxValue = 9999
         MinValue = 0
-        TabOrder = 7
+        TabOrder = 2
         Value = 0
       end
       object chkCreateBranchFolder: TCheckBox
@@ -470,6 +481,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
         Top = 109
         Width = 143
         Height = 17
+        TabStop = False
         Caption = ' Create Branch Folders'
         Enabled = False
         TabOrder = 8
@@ -480,12 +492,13 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Top = 206
       Width = 90
       Height = 17
+      TabStop = False
       Caption = ' Skip Recent'
-      TabOrder = 12
+      TabOrder = 11
     end
     object btnTemplate: TButton
       Left = 17
-      Top = 386
+      Top = 385
       Width = 90
       Height = 25
       Anchors = [akLeft, akBottom]
@@ -494,7 +507,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       ImageIndex = 9
       Images = FormMDIMain.ImageList_20
       Style = bsSplitButton
-      TabOrder = 13
+      TabOrder = 15
     end
     object chkParameter: TCheckBox
       Left = 100
@@ -502,7 +515,8 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Width = 15
       Height = 17
       Hint = 'Disable parameter browser with a fixed parameter.'
-      TabOrder = 14
+      TabStop = False
+      TabOrder = 16
       OnClick = chkParameterClick
     end
     object edtAppSourceCopy: TButtonedEdit
@@ -515,7 +529,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       RightButton.ImageIndex = 34
       RightButton.PressedImageIndex = 4
       RightButton.Visible = True
-      TabOrder = 15
+      TabOrder = 6
       TextHint = 'Source Folder'
       OnChange = edtAppSourceCopyChange
       OnRightButtonClick = edtAppSourceRightButtonClick
@@ -527,10 +541,22 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Height = 21
       Style = csDropDownList
       ItemIndex = 0
-      TabOrder = 16
+      TabOrder = 4
+      TabStop = False
       Items.Strings = (
         ''
         'file://')
+    end
+    object chkRunAsAdmin: TCheckBox
+      Left = 212
+      Top = 44
+      Width = 138
+      Height = 17
+      AllowGrayed = True
+      Caption = ' Run as Admin [Inherited]'
+      State = cbGrayed
+      TabOrder = 17
+      OnClick = chkRunAsAdminClick
     end
   end
   object PopupMenuTemplate: TPopupMenu
@@ -551,5 +577,9 @@ object FormAppGroupEditor: TFormAppGroupEditor
       ImageIndex = 20
       OnClick = PMItemSaveTemplateClick
     end
+  end
+  object BalloonHint: TBalloonHint
+    Left = 152
+    Top = 384
   end
 end

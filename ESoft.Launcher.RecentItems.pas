@@ -8,6 +8,7 @@ Unit ESoft.Launcher.RecentItems;
 Interface
 
 Uses
+   Vcl.StdCtrls,
    Winapi.Windows,
    System.Classes,
    IniFiles,
@@ -21,9 +22,11 @@ Type
    IEApplication = Interface
       Function GetActualName: String;
       Function GetISFixedParameter: Boolean;
+      Function GetRunAsAdmin: TCheckBoxState;
+      Procedure SetRunAsAdmin(Const aValue: TCheckBoxState);
       Function GetFixedParameter: String;
       Function GetLastUsedParamName: String;
-      procedure SetLastUsedParamName(const aValue: String);
+      Procedure SetLastUsedParamName(Const aValue: String);
       Function RunExecutable(aParameter: String = ''): Boolean;
       Function UnZip: Boolean;
       Function CopyFromSourceFolder: Boolean;
@@ -34,12 +37,14 @@ Type
       Property ISFixedParameter: Boolean Read GetISFixedParameter;
       Property FixedParameter: String Read GetFixedParameter;
       Property LastUsedParamName: String Read GetLastUsedParamName Write SetLastUsedParamName;
+      Property RunAsAdmin: TCheckBoxState Read GetRunAsAdmin Write SetRunAsAdmin;
    End;
 
    TERecentItems = Class; // Forward declaration { Ajmal }
 
    TERecentItem = Class(TPersistent, IEApplication)
    Strict Private
+      FRunAsAdmin: TCheckBoxState;
       FOwner: TERecentItems;
       FName: String;
       FSourceFolder: String;
@@ -53,6 +58,8 @@ Type
       Function GetFixedParameter: String;
       Function GetLastUsedParamName: String;
       procedure SetLastUsedParamName(const aValue: String);
+      Function GetRunAsAdmin: TCheckBoxState;
+      Procedure SetRunAsAdmin(Const aValue: TCheckBoxState);
       Function GetIcon: TIcon;
       Function GetParameter: TStringList;
    Public
@@ -73,6 +80,7 @@ Type
       Property ExecutableName: String Read FExecutableName Write FExecutableName;
       Property Parameter: TStringList Read GetParameter;
       Property Icon: TIcon Read GetIcon;
+      Property RunAsAdmin: TCheckBoxState Read GetRunAsAdmin Write SetRunAsAdmin;
    End;
 
    TERecentItems = Class(TObjectList<TERecentItem>)
@@ -133,10 +141,12 @@ Var
 Begin
    Result := Nil;
 
-   EFreeAndNil(FIcon);
    sFileName := IncludeTrailingBackslash(SourceFolder) + ExecutableName;
+   EFreeAndNil(FIcon);
+   // Check for file extention 1st. If it's a network folder, then we skip it first since folder won't have extension { Ajmal }
    If ExtractFileExt(sFileName) = '' Then
       Exit;
+
    If Not FileExists(sFileName) Then
       Exit;
 
@@ -174,6 +184,11 @@ Begin
    Result := FParameters;
 End;
 
+Function TERecentItem.GetRunAsAdmin: TCheckBoxState;
+Begin
+   Result := FRunAsAdmin;
+End;
+
 Procedure TERecentItem.OnParamChange(aSender: TObject);
 Begin
    // For the 1st one, AddItem will call the DoChange { Ajmal }
@@ -191,12 +206,24 @@ Begin
    If (aParameter = '') And (Parameter.Count > 0) Then
       aParameter := Parameter[0];
 
-   FormMDIMain.RunApplication(Name, ExecutableName, aParameter, SourceFolder, False);
+   FormMDIMain.RunApplication(
+      Name,
+      ExecutableName,
+      aParameter,
+      SourceFolder,
+      False,
+      RunAsAdmin
+   );
 End;
 
 Procedure TERecentItem.SetLastUsedParamName(const aValue: String);
 Begin
    // For recent items, Parameters are fixed always from the previous used list. { Ajmal }
+End;
+
+Procedure TERecentItem.SetRunAsAdmin(const aValue: TCheckBoxState);
+Begin
+   FRunAsAdmin := aValue;
 End;
 
 Function TERecentItem.UnZip: Boolean;

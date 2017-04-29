@@ -223,7 +223,8 @@ Type
       Procedure UpdateApplicationListInBackGround;
       Procedure UpdateApplicationList(const aForceUpdate: Boolean = False);
       Procedure ReloadFromIni;
-      Procedure RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String; aSkipFromRecent: Boolean);
+      Procedure RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String;
+        aSkipFromRecent: Boolean; Const aRunAsAdmin: TCheckBoxState);
       procedure LoadParamCategories;
 
       Property RecentItems: TERecentItems Read GetRecentItems;
@@ -256,8 +257,8 @@ Uses
 Const
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000121;
-   cAppVersion = '1.0.1.21';
+   cApplication_Version = 01000124;
+   cAppVersion = '1.0.1.24';
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -1397,27 +1398,46 @@ Var
       varCurrMenuItem, varSubMenuItem: TMenuItem;
       varSubAppGroup: TEApplicationGroup;
       iFolderFixedMenuCount: Integer;
+      varFolderNames: TArray<String>;
+      sFolderName: String;
    Begin
       Result := 0;
+      If bkGndUpdateAppList.CancellationPending Then
+         Exit;
+
       If Not aAppGroup.IsFolder Then
          Exit;
 
       aCurrMenuGroup.ImageIndex := cIMG_FOLDER;
-      varCurrMenuItem := _AddMenu('Open Folder', Nil, aCurrMenuGroup);
-      varCurrMenuItem.ImageIndex := cIMG_FILE_LINK;
+      If (aAppGroup.Count > 0) Or (aAppGroup.SubItems.Count > 0) Then
+      begin
+         varCurrMenuItem := _AddMenu('Open Folder', Nil, aCurrMenuGroup);
+         varCurrMenuItem.ImageIndex := cIMG_FILE_LINK;
+         aCurrMenuGroup.InsertNewLineAfter(varCurrMenuItem);
+      end
+      Else
+         varCurrMenuItem := aCurrMenuGroup;
       varCurrMenuItem.Tag := NativeInt(aAppGroup);
       varCurrMenuItem.OnClick := OpenParentFolderClick;
-      // _AddMenu('-', Nil, aCurrMenuGroup);
 
-      For varSubAppGroup In aAppGroup.SubItems.Values Do
+      If aAppGroup.SubItems.Count > 0 Then
       Begin
-         varSubMenuItem := _AddMenu(varSubAppGroup.Name, Nil, aCurrMenuGroup);
-         varSubMenuItem.ImageIndex := cIMG_FOLDER;
-         iFolderFixedMenuCount := _AddFolders(varSubAppGroup, varSubMenuItem);
-         _AddApplications(varSubAppGroup, varSubMenuItem, iFolderFixedMenuCount);
+         varFolderNames := aAppGroup.SubItems.Keys.ToArray;
+         TArray.Sort<String>(varFolderNames);
+         For sFolderName In varFolderNames Do
+         Begin
+            varSubAppGroup := aAppGroup.SubItems[sFolderName];
+            If bkGndUpdateAppList.CancellationPending Then
+               Break;
+
+            varSubMenuItem := _AddMenu(varSubAppGroup.Name, Nil, aCurrMenuGroup);
+            varSubMenuItem.ImageIndex := cIMG_FOLDER;
+            iFolderFixedMenuCount := _AddFolders(varSubAppGroup, varSubMenuItem);
+            _AddApplications(varSubAppGroup, varSubMenuItem, iFolderFixedMenuCount);
+         End;
+         aCurrMenuGroup.InsertNewLineAfter(varSubMenuItem);
       End;
 
-      _AddMenu('-', Nil, aCurrMenuGroup);
       Result := aCurrMenuGroup.Count;
    End;
 
@@ -1497,7 +1517,7 @@ Begin
          End;
 
          varAppGrp.LoadApplications;
-         varCurrMenuGroup.Enabled := varAppGrp.Count > 0;
+         varCurrMenuGroup.Enabled := (varAppGrp.Count > 0) Or (varAppGrp.SubItems.Count > 0);
 
          iFolderFixedMenuCount := _AddFolders(varAppGrp, varCurrMenuGroup);
          _AddApplications(varAppGrp, varCurrMenuGroup, iFolderFixedMenuCount);
@@ -1568,12 +1588,15 @@ begin
    Inherited;
 end;
 
-Procedure TFormMDIMain.RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String; aSkipFromRecent: Boolean);
+Procedure TFormMDIMain.RunApplication(Const aName, aExecutableName, aParameter, aSourcePath: String;
+  aSkipFromRecent: Boolean; Const aRunAsAdmin: TCheckBoxState);
 Var
    varRecentItems: TERecentItem;
+   bRunAsAdmin: Boolean;
 Begin
+   bRunAsAdmin := (aRunAsAdmin = cbChecked) Or ((aRunAsAdmin = cbGrayed) And (IsRunAsAdmin));
    Try
-      If IsRunAsAdmin Then
+      If bRunAsAdmin Then
          RunAsAdmin(Handle, PWideChar(aExecutableName), PWideChar(aParameter), PWideChar(aSourcePath))
       Else
          ShellExecute(Handle, 'open', PWideChar(aExecutableName), PWideChar(aParameter), PWideChar(aSourcePath), SW_SHOWNORMAL);
@@ -1581,6 +1604,7 @@ Begin
       if not aSkipFromRecent then
       Begin
          varRecentItems := RecentItems.AddItem(aName, aSourcePath, aExecutableName);
+         varRecentItems.RunAsAdmin := aRunAsAdmin;
          varRecentItems.Parameter.Add(aParameter);
       End;
    Except

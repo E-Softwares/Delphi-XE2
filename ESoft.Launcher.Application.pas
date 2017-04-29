@@ -12,6 +12,7 @@ Uses
    System.Classes,
    System.StrUtils,
    System.Types,
+   Vcl.StdCtrls,
    Vcl.Forms,
    IniFiles,
    Vcl.Dialogs,
@@ -67,6 +68,8 @@ Type
       Function GetFixedParameter: String;
       Function GetLastUsedParamName: String;
       procedure SetLastUsedParamName(const aValue: String);
+      Function GetRunAsAdmin: TCheckBoxState;
+      Procedure SetRunAsAdmin(Const aValue: TCheckBoxState);
       Function GetFileName(aType: eTAppFile): String;
       Procedure SetOwner(Const Value: TEApplicationGroup);
    Public
@@ -95,6 +98,7 @@ Type
       Property FileName: String Index eafFileName Read GetFileName Write FFileName;
       Property IsFixedParameter: Boolean Read GetISFixedParameter;
       Property Icon: TIcon Read GetIcon;
+      Property RunAsAdmin: TCheckBoxState Read GetRunAsAdmin;
    End;
 
    TEApplications = Class(TObjectList<TEApplication>);
@@ -111,6 +115,7 @@ Type
       FDestFolder: String;
       FFileMask: String;
       FDisplayLabel: String;
+      FRunAsAdmin: TCheckBoxState;
       FCreateFolder, FCreateBranchFolder, FSkipFromRecent: Boolean;
       FIcon: TIcon;
       FIsMajorBranching, FIsMinorBranching, FIsReleaseBranching: Boolean;
@@ -124,6 +129,8 @@ Type
       Function GetISFixedParameter: Boolean;
       Function GetFixedParameter: String;
       Function GetLastUsedParamName: String;
+      Function GetRunAsAdmin: TCheckBoxState;
+      Procedure SetRunAsAdmin(Const aValue: TCheckBoxState);
       procedure SetLastUsedParamName(const aValue: String);
       Procedure SetSourceFolder(Const Value: String);
       Procedure SetSourceFolderCopyTo(Const aValue: String);
@@ -182,6 +189,7 @@ Type
       Property CreateBranchFolder: Boolean Read FCreateBranchFolder Write FCreateBranchFolder;
       Property GroupType: Integer Read FGroupType Write FGroupType;
       Property SubItems: TEApplicationGroups Read GetSubItems;
+      Property RunAsAdmin: TCheckBoxState Read FRunAsAdmin Write FRunAsAdmin;
    End;
 
    TEApplicationGroups = Class(TObjectDictionary<String, TEApplicationGroup>)
@@ -232,6 +240,7 @@ Const
    cGroupIsMajorBranching = 'Is_MajorBranching';
    cGroupIsMinorBranching = 'Is_MinorBranching';
    cGroupIsReleaseBranching = 'Is_ReleaseBranching';
+   cGroupRunAsAdmin = 'Run_As_Admin';
    cGroupBranchingPrefix = 'BranchingPrefix';
    cGroupBranchingSufix = 'BranchingSufix';
    cGroupBranchingMainBranch = 'BranchingMainBranch';
@@ -309,11 +318,12 @@ Begin
       sFileName := DestFolder + ExecutableName;
 
    EFreeAndNil(FIcon);
-   If Not FileExists(sFileName) Then
-    Exit;
-
+   // Check for file extention 1st. If it's a network folder, then we skip it first since folder won't have extension { Ajmal }
    If ExtractFileExt(sFileName) = '' Then
       Exit;
+
+   If Not FileExists(sFileName) Then
+    Exit;
 
    FIcon := TIcon.Create;
    Try
@@ -344,6 +354,11 @@ Begin
    Result := FLastUsedParamName;
 End;
 
+Function TEApplicationGroup.GetRunAsAdmin: TCheckBoxState;
+Begin
+   Result := FRunAsAdmin;
+End;
+
 Function TEApplicationGroup.GetSubItems: TEApplicationGroups;
 Begin
    If Not Assigned(FSubItems) Then
@@ -355,42 +370,50 @@ Procedure TEApplicationGroup.LoadApplications;
 Var
    varSearch: TSearchRec;
    varAppGroup: TEApplicationGroup;
-   sCurrPath: String;
+   sCurrPath, sCurrFileMask: String;
+   varFileExts: TStringDynArray;
+   iCntr: Integer;
 Begin
    Clear;
    SubItems.Clear;
 
-   sCurrPath := IncludeTrailingBackslash(SourceFolder);
-   If SourceFolder <> '' Then
+   varFileExts := SplitString(FileMask, ';');
+   For iCntr := Low(varFileExts) To High(varFileExts) Do
    Begin
-      If IsFolder And (FindFirst(SourceFolder + FileMask, faDirectory, varSearch) = 0) Then
+      sCurrFileMask := varFileExts[iCntr];
+      sCurrPath := IncludeTrailingBackslash(SourceFolder);
+      If SourceFolder <> '' Then
       Begin
-         Repeat
-            If DirectoryExists(sCurrPath + varSearch.Name) Then
-            Begin
-               If (varSearch.Name <> '.') And (varSearch.Name <> '..') then
+         SetCurrentDir(SourceFolder);
+         If IsFolder And (FindFirst(sCurrFileMask, faDirectory, varSearch) = 0) Then
+         Begin
+            Repeat
+               If (varSearch.Attr And faDirectory) = faDirectory Then
                Begin
-                  varAppGroup := SubItems.AddItem(varSearch.Name);
-                  varAppGroup.GroupType := cGroupType_Folder;
-                  varAppGroup.FileMask := FileMask;
-                  varAppGroup.SourceFolder := IncludeTrailingBackslash(sCurrPath + varSearch.Name);
-                  varAppGroup.SkipFromRecent := SkipFromRecent;
-                  varAppGroup.ISFixedParameter := ISFixedParameter;
-                  varAppGroup.FixedParameter := FixedParameter;
-                  varAppGroup.LoadApplications;
-               End;
-            End
-            Else
+                  If (varSearch.Name <> '.') And (varSearch.Name <> '..') then
+                  Begin
+                     varAppGroup := SubItems.AddItem(varSearch.Name);
+                     varAppGroup.GroupType := cGroupType_Folder;
+                     varAppGroup.FileMask := FileMask;
+                     varAppGroup.SourceFolder := IncludeTrailingBackslash(sCurrPath + varSearch.Name);
+                     varAppGroup.SkipFromRecent := SkipFromRecent;
+                     varAppGroup.ISFixedParameter := ISFixedParameter;
+                     varAppGroup.FixedParameter := FixedParameter;
+                     varAppGroup.LoadApplications;
+                  End;
+               End
+               Else If (sCurrFileMask <> '*') Then
+                  InsertItem(0).FileName := varSearch.Name;
+            Until FindNext(varSearch) <> 0;
+            FindClose(varSearch);
+         End
+         Else If FindFirst(sCurrFileMask, faArchive, varSearch) = 0 Then
+         Begin
+            Repeat
                InsertItem(0).FileName := varSearch.Name;
-         Until FindNext(varSearch) <> 0;
-         FindClose(varSearch);
-      End
-      Else If FindFirst(SourceFolder + FileMask, faArchive, varSearch) = 0 Then
-      Begin
-         Repeat
-            InsertItem(0).FileName := varSearch.Name;
-         Until FindNext(varSearch) <> 0;
-         FindClose(varSearch);
+            Until FindNext(varSearch) <> 0;
+            FindClose(varSearch);
+         End;
       End;
    End;
 End;
@@ -411,6 +434,7 @@ Begin
       DestFolder := varIniFile.ReadString(Name, cGroupDestFolder, '');
       CreateFolder := varIniFile.ReadBool(Name, cGroupCreateFolder, True);
       SkipFromRecent := varIniFile.ReadBool(Name, cGroupSkipFromRecent, False);
+      RunAsAdmin := TCheckBoxState(varIniFile.ReadInteger(Name, cGroupRunAsAdmin, 2));
       // Is_Application should be removed soon { Ajmal }
       GroupType := varIniFile.ReadInteger(Name, 'Is_Application', -1);
       If GroupType = -1 Then
@@ -454,7 +478,14 @@ Begin
    If ISFixedParameter Then
       aParameter := aParameter + ' ' + FixedParameter;
 
-   FormMDIMain.RunApplication(Name, ExecutableName, aParameter, FinalSourceFolder, SkipFromRecent);
+   FormMDIMain.RunApplication(
+      Name,
+      ExecutableName,
+      aParameter,
+      FinalSourceFolder,
+      SkipFromRecent,
+      RunAsAdmin
+   );
 End;
 
 Procedure TEApplicationGroup.SaveData(Const aFileName: String);
@@ -473,6 +504,7 @@ Begin
       varIniFile.WriteString(Name, cGroupDestFolder, DestFolder);
       varIniFile.WriteBool(Name, cGroupCreateFolder, CreateFolder);
       varIniFile.WriteBool(Name, cGroupSkipFromRecent, SkipFromRecent);
+      varIniFile.WriteInteger(Name, cGroupRunAsAdmin, Ord(RunAsAdmin));
       varIniFile.WriteInteger(Name, cGroupType, GroupType);
       varIniFile.WriteString(Name, cGroupLabel, DisplayLabel);
       varIniFile.WriteBool(Name, cGroupIsMajorBranching, IsMajorBranching);
@@ -518,6 +550,11 @@ Begin
    Finally
       varIniFile.Free;
    End;
+End;
+
+Procedure TEApplicationGroup.SetRunAsAdmin(const aValue: TCheckBoxState);
+Begin
+   FRunAsAdmin := aValue;
 End;
 
 Procedure TEApplicationGroup.SetSourceFolder(Const Value: String);
@@ -725,11 +762,12 @@ Begin
 
    sFileName := TargetFolder + FileName;
    EFreeAndNil(FIcon);
-   If Not FileExists(sFileName) Then
-    Exit;
-
+   // Check for file extention 1st. If it's a network folder, then we skip it first since folder won't have extension { Ajmal }
    If ExtractFileExt(sFileName) = '' Then
       Exit;
+
+   If Not FileExists(sFileName) Then
+    Exit;
 
    FIcon := TIcon.Create;
    Try
@@ -748,6 +786,11 @@ end;
 Function TEApplication.GetLastUsedParamName: String;
 Begin
    Result := FLastUsedParamName;
+End;
+
+Function TEApplication.GetRunAsAdmin: TCheckBoxState;
+Begin
+   Result := Owner.RunAsAdmin;
 End;
 
 Function TEApplication.MajorVersionName: String;
@@ -854,7 +897,14 @@ Begin
       sTargetFolder := Owner.FinalSourceFolder;
    End;
 
-   FormMDIMain.RunApplication(Name, sFileName, aParameter, sTargetFolder, Owner.SkipFromRecent);
+   FormMDIMain.RunApplication(
+      Name,
+      sFileName,
+      aParameter,
+      sTargetFolder,
+      Owner.SkipFromRecent,
+      Owner.RunAsAdmin
+   );
 End;
 
 procedure TEApplication.SetLastUsedParamName(const aValue: String);
@@ -867,6 +917,11 @@ end;
 Procedure TEApplication.SetOwner(Const Value: TEApplicationGroup);
 Begin
    FOwner := Value;
+End;
+
+Procedure TEApplication.SetRunAsAdmin(const aValue: TCheckBoxState);
+Begin
+   // Not supported at Application level now { Ajmal }
 End;
 
 Function TEApplication.TargetBranchPath: String;
