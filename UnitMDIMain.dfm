@@ -25,7 +25,7 @@ object FormMDIMain: TFormMDIMain
   object lblAppListNotUpdated: TLabel
     AlignWithMargins = True
     Left = 3
-    Top = 463
+    Top = 466
     Width = 354
     Height = 14
     Cursor = crHandPoint
@@ -49,7 +49,7 @@ object FormMDIMain: TFormMDIMain
     Left = 3
     Top = 143
     Width = 354
-    Height = 283
+    Height = 286
     Align = alClient
     Font.Charset = ANSI_CHARSET
     Font.Color = clWindowText
@@ -71,7 +71,7 @@ object FormMDIMain: TFormMDIMain
   object PanelDeveloper: TPanel
     AlignWithMargins = True
     Left = 3
-    Top = 432
+    Top = 435
     Width = 354
     Height = 25
     Cursor = crHandPoint
@@ -112,7 +112,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 38
-        Height = 23
+        Height = 26
         Margins.Left = 8
         Align = alLeft
         Caption = 'Hotkey'
@@ -164,7 +164,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 66
-        Height = 21
+        Height = 13
         Margins.Left = 8
         Align = alLeft
         Caption = 'Connections'
@@ -219,7 +219,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 68
-        Height = 26
+        Height = 29
         Margins.Left = 8
         Align = alLeft
         Caption = 'Recent count'

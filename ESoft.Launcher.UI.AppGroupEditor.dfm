@@ -256,7 +256,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       RightButton.ImageIndex = 34
       RightButton.PressedImageIndex = 4
       RightButton.Visible = True
-      TabOrder = 1
+      TabOrder = 0
       TextHint = 'Group Name'
       OnChange = edtGroupNameChange
       OnEnter = edtGroupNameEnter
@@ -306,7 +306,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Top = 42
       Width = 105
       Height = 21
-      TabOrder = 0
+      TabOrder = 1
       OnKeyPress = edtGroupNameKeyPress
     end
     object grpBranching: TGroupBox
@@ -552,6 +552,7 @@ object FormAppGroupEditor: TFormAppGroupEditor
       Top = 44
       Width = 138
       Height = 17
+      TabStop = False
       AllowGrayed = True
       Caption = ' Run as Admin [Inherited]'
       State = cbGrayed
