@@ -65,7 +65,7 @@ object FormDownloader: TFormDownloader
   end
   object lblPercentDone: TLabel
     Left = 15
-    Top = 114
+    Top = 116
     Width = 81
     Height = 15
     Anchors = [akLeft, akBottom]
@@ -75,6 +75,21 @@ object FormDownloader: TFormDownloader
     Font.Height = -12
     Font.Name = 'Times New Roman'
     Font.Style = []
+    ParentFont = False
+    Layout = tlCenter
+  end
+  object lblFileIndex: TLabel
+    Left = 15
+    Top = 94
+    Width = 110
+    Height = 14
+    Anchors = [akLeft, akBottom]
+    Caption = 'Downloading file 1 of 5'
+    Font.Charset = ANSI_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Times New Roman'
+    Font.Style = [fsItalic]
     ParentFont = False
     Layout = tlCenter
   end

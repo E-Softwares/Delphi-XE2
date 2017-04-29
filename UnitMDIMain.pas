@@ -52,6 +52,7 @@ Uses
    AbBrowse,
    AbZBrows,
    AbUnzper,
+   AbArcTyp,
    ESoft.Launcher.PopupList,
    BackgroundWorker, 
    IdBaseComponent, 
@@ -257,8 +258,8 @@ Uses
 Const
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000124;
-   cAppVersion = '1.0.1.24';
+   cApplication_Version = 01000125;
+   cAppVersion = '1.0.1.25';
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -896,6 +897,7 @@ Begin
                   Break; // No more file exist so exit loop. { Ajmal }
                End;
             End;
+
             If varDownloadManager.Download Then
             Begin
                If FileExists(ParentFolder + 'Old_' + ExtractFileName(ParamStr(0))) Then
@@ -905,8 +907,17 @@ Begin
                End;
                RenameFile(ParamStr(0), ParentFolder + 'Old_' + ExtractFileName(ParamStr(0)));
                varZipFile.FileName := sMainZipFilaeName;
+               varZipFile.BaseDirectory := ParentFolder;
+               varZipFile.ExtractOptions := [eoCreateDirs, eoRestorePath];
                varZipFile.ExtractFiles('*.*');
-               MessageDlg('Application updated.', mtWarning, [mbOK], 0);
+
+               If FileExists(ParamStr(0)) Then
+                  MessageDlg('Application updated.', mtWarning, [mbOK], 0)
+               Else
+               Begin
+                  RenameFile(ParentFolder + 'Old_' + ExtractFileName(ParamStr(0)), ParamStr(0));
+                  MessageDlg('Updation failed. Please try again.', mtError, [mbOK], 0);
+               End;
                PMItemExit.Click;
             End;
          Finally

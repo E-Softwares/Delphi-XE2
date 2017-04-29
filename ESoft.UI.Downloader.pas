@@ -40,6 +40,7 @@ Type
       Panel1: TPanel;
       pbAll: TProgressBar;
       pbMain: TProgressBar;
+      lblFileIndex: TLabel;
       Procedure FormCloseQuery(Sender: TObject; Var CanClose: Boolean);
       Procedure btnCancelClick(Sender: TObject);
       Procedure bkGndWorkerWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
@@ -124,6 +125,7 @@ uses
 
 Const
    cProgressMessage = '%d percent downloaded [%2fMB/%2fMB]';
+   cFileCountProgress = 'Downloading file %d of %d';
    cDefaultCaption = 'Download Manager';
    cDefaultTitle = 'Downloading file(s)';
    cDefaultText = 'Please wait . . . !';
@@ -206,7 +208,10 @@ Begin
    Dialog.pbAll.Position := 0;
    Dialog.pbAll.Max := Items.Count;
    If Items.Count < 2 Then
+   Begin
       Dialog.pbAll.Hide;
+      Dialog.lblFileIndex.Hide;
+   End;
 
    Dialog.lblPercentDone.Caption := 'Connecting. Please wait . . . !';
    Dialog.AdjustSize;
@@ -375,6 +380,7 @@ Begin
         cProgressUpdateFileSize:
         Begin
            pbAll.Position := pbAll.Position + 1;
+           lblFileIndex.Caption := Format(cFileCountProgress, [pbAll.Position, pbAll.Max - 1]);
            pbMain.Position := 0;
            pbMain.Max := Round(FDownloader.FileSize / FDownloader.PacketSize);
            lblText.Caption := FDownloader.URL;
@@ -382,8 +388,12 @@ Begin
         Else
         Begin
            pbMain.Position := PercentDone;
-           iPercent := Round((PercentDone * 100) Div pbMain.Max);
+
            iPacketSizeInMB := Round(FDownloader.PacketSize / 1000);
+           iPercent := Round((PercentDone * 100) Div pbMain.Max);
+           If iPercent > 100 Then
+              iPercent := 100;
+
            lblPercentDone.Caption := Format(cProgressMessage, [
               iPercent,
               (pbMain.Position / 1000) * iPacketSizeInMB,

@@ -365,6 +365,7 @@ object FormMDIMain: TFormMDIMain
     Top = 232
   end
   object PopupMenuListView: TPopupMenu
+    AutoHotkeys = maManual
     Images = ImageList_20
     OnPopup = PopupMenuListViewPopup
     Left = 32
@@ -394,6 +395,7 @@ object FormMDIMain: TFormMDIMain
     end
   end
   object MainMenu: TMainMenu
+    AutoHotkeys = maManual
     Images = ImageList_20
     Left = 96
     Top = 264
