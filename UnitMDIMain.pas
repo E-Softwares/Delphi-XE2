@@ -258,8 +258,8 @@ Uses
 Const
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000127;
-   cAppVersion = '1.0.1.27';
+   cApplication_Version = 01000128;
+   cAppVersion = '1.0.1.28';
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;

@@ -543,18 +543,8 @@ Begin
 End;
 
 Procedure TEApplicationGroup.SetLastUsedParamName(const aValue: String);
-Var
-   varIniFile: TIniFile;
 Begin
    FLastUsedParamName := aValue;
-
-   // We need to write this param immediately { Ajmal }
-   varIniFile := TIniFile.Create(FormMDIMain.ParentFolder + cGroup_INI);
-   Try
-      varIniFile.WriteString(Name, cGroupLastUsedParam, LastUsedParamName);
-   Finally
-      varIniFile.Free;
-   End;
 End;
 
 Procedure TEApplicationGroup.SetRunAsAdmin(const aValue: TCheckBoxState);
@@ -791,6 +781,9 @@ end;
 Function TEApplication.GetLastUsedParamName: String;
 Begin
    Result := FLastUsedParamName;
+
+   If Trim(Result) = '' Then
+      Result := Owner.LastUsedParamName;
 End;
 
 Function TEApplication.GetRunAsAdmin: TCheckBoxState;
