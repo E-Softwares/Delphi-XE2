@@ -173,7 +173,10 @@ procedure TFormAppGroupEditor.cbGroupTypeChange(Sender: TObject);
 begin
    chkCreateFolder.Enabled := cbGroupType.ItemIndex = cGroupType_ZipFiles;
    grpBranching.Enabled := cbGroupType.ItemIndex = cGroupType_ZipFiles;
+
    chkRunAsAdmin.Enabled := cbGroupType.ItemIndex <> cGroupType_Folder;
+   If cbGroupType.ItemIndex = cGroupType_Folder Then
+      chkRunAsAdmin.State := cbUnchecked;
 
    edtFileMask.Enabled := cbGroupType.ItemIndex <> cGroupType_Application;
    If Not edtFileMask.Enabled Then

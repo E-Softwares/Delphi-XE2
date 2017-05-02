@@ -189,7 +189,7 @@ Type
       Property CreateBranchFolder: Boolean Read FCreateBranchFolder Write FCreateBranchFolder;
       Property GroupType: Integer Read FGroupType Write FGroupType;
       Property SubItems: TEApplicationGroups Read GetSubItems;
-      Property RunAsAdmin: TCheckBoxState Read FRunAsAdmin Write FRunAsAdmin;
+      Property RunAsAdmin: TCheckBoxState Read GetRunAsAdmin Write SetRunAsAdmin;
    End;
 
    TEApplicationGroups = Class(TObjectDictionary<String, TEApplicationGroup>)
@@ -357,6 +357,9 @@ End;
 Function TEApplicationGroup.GetRunAsAdmin: TCheckBoxState;
 Begin
    Result := FRunAsAdmin;
+   // If this is a folder, then never run as admin { Ajmal }
+   If IsFolder Then
+      Result := cbUnchecked;
 End;
 
 Function TEApplicationGroup.GetSubItems: TEApplicationGroups;
@@ -455,6 +458,7 @@ Begin
       NoOfBuilds := varIniFile.ReadInteger(Name, cGroupBranchingNoOfBuilds, 0);
       CurrentBranch := varIniFile.ReadInteger(Name, cGroupBranchingCurrentBranch, 0);
       CreateBranchFolder := varIniFile.ReadBool(Name, cGroupBranchingCreateFolder, False);
+      LastUsedParamName := varIniFile.ReadString(Name, cGroupLastUsedParam, '');
    Finally
       varIniFile.Free;
    End;
@@ -516,6 +520,7 @@ Begin
       varIniFile.WriteInteger(Name, cGroupBranchingNoOfBuilds, NoOfBuilds);
       varIniFile.WriteInteger(Name, cGroupBranchingCurrentBranch, CurrentBranch);
       varIniFile.WriteBool(Name, cGroupBranchingCreateFolder, CreateBranchFolder);
+      varIniFile.WriteString(Name, cGroupLastUsedParam, LastUsedParamName);
    Finally
       varIniFile.Free;
    End;
