@@ -57,6 +57,7 @@ Type
       Procedure CreateParams(Var aParams: TCreateParams); Override;
    Public
       Constructor Create(aOwner: TComponent; Const aDownLoader: TEDownloadManager); Reintroduce;
+      Destructor Destroy; override;
    End;
 
    IEDownloadManager = Interface
@@ -71,6 +72,7 @@ Type
       Function FileSize: Int64;
       Procedure Add(Const aUrl, aFileName: String);
       Function Download: Boolean;
+      Function IsDownloading: Boolean;
 
       Property Caption: String Read GetCaption Write SetCaption;
       Property Dialog: TFormDownloader Read GetDialog;
@@ -108,6 +110,7 @@ Type
       Function FileSize: Int64;
       Procedure Add(Const aUrl, aFileName: String);
       Function Download: Boolean;
+      Function IsDownloading: Boolean;
    Published
       Property Caption: String Read GetCaption Write SetCaption;
       Property Dialog: TFormDownloader Read GetDialog;
@@ -217,7 +220,7 @@ Begin
    Dialog.AdjustSize;
    Dialog.bkGndWorker.Execute;
    Dialog.ShowModal;
-   Result := Not Dialog.bkGndWorker.IsCancelled;
+   Result := Not (Dialog.bkGndWorker.IsWorking Or Dialog.bkGndWorker.IsCancelled);
 End;
 
 Function TEDownloadManager.GetCaption: String;
@@ -247,6 +250,11 @@ End;
 Function TEDownloadManager.GetPacketSize: Integer;
 Begin
    Result := cDefaultPacketSize;
+End;
+
+Function TEDownloadManager.IsDownloading: Boolean;
+Begin
+   Result := Dialog.bkGndWorker.IsWorking;
 End;
 
 Function TEDownloadManager.QueryInterface(Const IID: TGUID; Out Obj): HRESULT;
@@ -439,6 +447,14 @@ Begin
 
    If Owner <> FormMDIMain Then
       aParams.ExStyle := aParams.ExStyle Or WS_EX_APPWINDOW;
+End;
+
+Destructor TFormDownloader.Destroy;
+Begin
+   bkGndWorker.Cancel;
+   bkGndWorker.WaitFor;
+
+   Inherited;
 End;
 
 Procedure TFormDownloader.FormCloseQuery(Sender: TObject; Var CanClose: Boolean);

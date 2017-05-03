@@ -385,7 +385,10 @@ Begin
       While True Do
       Begin
          If bkGndFetchAppVersionDetails.CancellationPending Then
+         Begin
+            bkGndFetchAppVersionDetails.AcceptCancellation;
             Break;
+         End;
 
          Try
             Inc(iCntr);
@@ -478,7 +481,11 @@ End;
 
 Procedure TFormMDIMain.FormDestroy(Sender: TObject);
 Begin
+   bkGndUpdateAppList.Cancel;
+   bkGndFetchAppVersionDetails.Cancel;
    bkGndUpdateAppList.WaitFor;
+   bkGndFetchAppVersionDetails.WaitFor;
+
    UnRegisterHotKey(Handle, FHotKeyMain);
    GlobalDeleteAtom(FHotKeyMain);
    ClipboardItems.Save;
@@ -911,7 +918,13 @@ Var
    sMainZipFilaeName: String;
    varZipFile: TAbUnZipper;
 Begin
-   iAppVersion := StrToInt(GetAppVersionFromSite(cUniqueAppVersionCode));
+   Try
+      iAppVersion := StrToInt(GetAppVersionFromSite(cUniqueAppVersionCode));
+   Except
+      MessageDlg('Cannot connect to server.' + sLineBreak + 'Please check your internet connection', mtError, [mbOK], 0);
+      Exit;
+   End;
+
    If cApplication_Version < iAppVersion Then
    Begin
       If MessageDlg(cNewAppVersionAvailablePrompt, mtWarning, [mbYes, mbNo], 0, mbNo) = mrYes Then
@@ -1075,6 +1088,12 @@ End;
 
 Procedure TFormMDIMain.PopupMenuTrayPopup(Sender: TObject);
 Begin
+   If Assigned(FDownloadManager) And FDownloadManager.IsDownloading Then
+      Abort;
+
+   If bkGndFetchAppVersionDetails.IsWorking Then
+      Abort;
+
    PMItemTrayUpdate.Caption := rsUpdateApplication;
    PMItemTrayUpdate.ImageIndex := cIMG_APP_UPDATE;
    If lblAppListNotUpdated.Visible Then
@@ -1249,12 +1268,12 @@ Procedure TFormMDIMain.UpdateApplicationList(const aForceUpdate: Boolean);
 var
    bVisible: Boolean;
 begin
-   If not (aForceUpdate Or MItemImmediateUpdate.Checked) then 
+   If not (aForceUpdate Or MItemImmediateUpdate.Checked) then
    Begin
       lblAppListNotUpdated.Show;
       Exit;
    End;
-    
+
    bVisible := Visible;
    if not Visible then
    Begin
