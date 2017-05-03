@@ -6091,7 +6091,7 @@ object FormMDIMain: TFormMDIMain
         Caption = 'Cancel'
         ModalResult = 2
       end>
-    Caption = 'Update'
+    Caption = 'Updating Menu'
     CommonButtons = []
     CustomFooterIcon.Data = {
       0000010007008080000001002000280801007600000040400000010020002842
@@ -14050,5 +14050,28 @@ object FormMDIMain: TFormMDIMain
       Hint = 'Contact developer'
       Subject = 'Feedback [Launcher]'
     end
+  end
+  object tskDlgGetVersionDetails: TTaskDialog
+    Buttons = <
+      item
+        Caption = 'Cancel'
+        ModalResult = 2
+      end>
+    Caption = 'Updating Application'
+    CommonButtons = []
+    DefaultButton = tcbCancel
+    Flags = [tfShowMarqueeProgressBar]
+    RadioButtons = <>
+    Text = 'Fetching version details. '
+    Title = 'Please wait . . . !'
+    OnButtonClicked = tskDlgGetVersionDetailsButtonClicked
+    Left = 128
+    Top = 296
+  end
+  object bkGndFetchAppVersionDetails: TBackgroundWorker
+    OnWork = bkGndFetchAppVersionDetailsWork
+    OnWorkComplete = bkGndFetchAppVersionDetailsWorkComplete
+    Left = 128
+    Top = 264
   end
 end

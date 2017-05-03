@@ -29,7 +29,6 @@ Type
     Function GetFileName: String;
     Procedure SetFileName(Const Value: String);
     Function GetItems(aIndex: Integer): String;
-
   Public
     Constructor Create;
     Destructor Destroy; Override;
@@ -39,7 +38,6 @@ Type
     // This is the default property of this call. We can access with Self[iCntr] { Ajmal }
     Property Items[aIndex: Integer]: String Read GetItems; Default;
     Property Connections: TStringList Read FItems;
-
   Published
     Property FileName: String Read GetFileName Write SetFileName;
   End;
@@ -54,13 +52,11 @@ Type
     FParameter: String;
     FName: String;
     FCategory: String;
-
   Public
     Constructor Create; Virtual;
 
     Procedure LoadData(Const aFilename: String); Virtual;
     Procedure SaveData(Const aFilename: String); Virtual;
-
   Published
     Property Name: String Read FName Write FName;
     Property Parameter: String Read FParameter Write FParameter;
@@ -88,13 +84,11 @@ Type
   Strict Private
     // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
     FDefaultInclude: Boolean;
-
   Public
     Constructor Create; Override;
 
     Procedure LoadData(Const aFilename: String); Override;
     Procedure SaveData(Const aFilename: String); Override;
-
   Published
     Property DefaultInclude: Boolean Read FDefaultInclude Write FDefaultInclude;
   End;
@@ -105,15 +99,15 @@ Type
   Strict Private
     // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
     FConnection: String;
-
+    FExcludeAdditionalParams: Boolean;
   Public
     Constructor Create; Override;
 
     Procedure LoadData(Const aFilename: String); Override;
     Procedure SaveData(Const aFilename: String); Override;
-
   Published
     Property Connection: String Read FConnection Write FConnection;
+    Property ExcludeAdditionalParams: Boolean Read FExcludeAdditionalParams Write FExcludeAdditionalParams;
   End;
 
 Implementation
@@ -124,27 +118,37 @@ Uses
 Const
   cParamType = 'Param_Type';
   cParamText = 'Param_Text';
+  cParamTextStrm = 'Param_Text_Strm';
   cParamConnection = 'Param_Connection';
   cParamDefaultInclude = 'Param_Default_Include';
   cParamCategory = 'Param_Category';
+  cParamExcludeAdditional = 'Param_Exclude_Additional';
 
   {TEParameterBase}
 
 Constructor TEParameterBase.Create;
 Begin
   // Virtual method, do nothing here. { Ajmal }
+  FParameter := '';
 End;
 
 Procedure TEParameterBase.LoadData(Const aFilename: String);
 Var
   varIniFile: TIniFile;
+  varStrm: TStringStream;
 Begin
   varIniFile := TIniFile.Create(aFilename);
+  varStrm := TStringStream.Create;
   Try
-    Parameter := varIniFile.ReadString(Name, cParamText, '');
+    If varIniFile.ValueExists(Name, cParamTextStrm) And (varIniFile.ReadBinaryStream(Name, cParamTextStrm, varStrm) <> 0) Then
+       Parameter := varStrm.DataString
+    Else // To be removed soon. { Ajmal }
+       Parameter := varIniFile.ReadString(Name, cParamText, '');
+
     ParamType := varIniFile.ReadInteger(Name, cParamType, cParamTypeInvalid);
     ParamCategory := varIniFile.ReadString(Name, cParamCategory, '');
   Finally
+    varStrm.Free;
     varIniFile.Free;
   End;
 End;
@@ -153,8 +157,10 @@ Procedure TEParameterBase.SaveData(Const aFilename: String);
 Var
   varIniFile: TIniFile;
   iParamType: Integer;
+  varStrm: TStringStream;
 Begin
   varIniFile := TIniFile.Create(aFilename);
+  varStrm := TStringStream.Create(Parameter);
   Try
     If Self Is TEConnectionParameter Then
       iParamType := cParamTypeConnection
@@ -163,10 +169,11 @@ Begin
     Else
       iParamType := cParamTypeInvalid;
 
-    varIniFile.WriteString(Name, cParamText, Parameter);
+    varIniFile.WriteBinaryStream(Name, cParamTextStrm, varStrm);
     varIniFile.WriteInteger(Name, cParamType, iParamType);
     varIniFile.WriteString(Name, cParamCategory, ParamCategory);
   Finally
+    varStrm.Free;
     varIniFile.Free;
   End;
 End;
@@ -364,6 +371,7 @@ Begin
   varIniFile := TIniFile.Create(aFilename);
   Try
     Connection := varIniFile.ReadString(Name, cParamConnection, '');
+    ExcludeAdditionalParams := varIniFile.ReadBool(Name, cParamExcludeAdditional, False);
   Finally
     varIniFile.Free;
   End;
@@ -378,6 +386,7 @@ Begin
   varIniFile := TIniFile.Create(aFilename);
   Try
     varIniFile.WriteString(Name, cParamConnection, Connection);
+    varIniFile.WriteBool(Name, cParamExcludeAdditional, ExcludeAdditionalParams);
   Finally
     varIniFile.Free;
   End;

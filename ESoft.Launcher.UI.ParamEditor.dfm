@@ -167,5 +167,15 @@ object FormParamEditor: TFormParamEditor
       TabOrder = 7
       OnKeyPress = cbCategoryKeyPress
     end
+    object chkExcludeAdditionalParameters: TCheckBox
+      Left = 17
+      Top = 158
+      Width = 171
+      Height = 17
+      TabStop = False
+      Anchors = [akLeft, akBottom]
+      Caption = ' Exclude Additional Parameters'
+      TabOrder = 8
+    end
   end
 end

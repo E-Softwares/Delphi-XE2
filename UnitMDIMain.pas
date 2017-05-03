@@ -59,6 +59,7 @@ Uses
    IdComponent, 
    IdTCPConnection, 
    IdTCPClient,
+   ESoft.UI.Downloader,
    IdHTTP;
 
 Const
@@ -142,6 +143,8 @@ Type
       lblAppListNotUpdated: TLabel;
       ActionListMain: TActionList;
       actSendMailDeveloper: TSendMail;
+      tskDlgGetVersionDetails: TTaskDialog;
+      bkGndFetchAppVersionDetails: TBackgroundWorker;
       Procedure sBtnBrowseConnectionClick(Sender: TObject);
       Procedure edtConnectionRightButtonClick(Sender: TObject);
       Procedure FormCreate(Sender: TObject);
@@ -173,6 +176,9 @@ Type
       procedure tskDlgUpdateListButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
       Procedure bkGndUpdateAppListWorkProgress(Worker: TBackgroundWorker; PercentDone: Integer);
       Procedure PanelDeveloperClick(Sender: TObject);
+      Procedure bkGndFetchAppVersionDetailsWork(aWorker: TBackgroundWorker);
+      procedure bkGndFetchAppVersionDetailsWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
+      procedure tskDlgGetVersionDetailsButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
@@ -190,6 +196,7 @@ Type
       FClipboardItems: TEClipboardItems;
       FCurrentProgressMessage: String;
       FPopupMenuClosed: Boolean;
+      FDownloadManager: IEDownloadManager;
 
       Procedure OnRecentItemsChange(aSender: TObject);
       Function MenuItemApplications(Const aType: Integer = cIMG_NONE): TMenuItem;
@@ -251,15 +258,14 @@ Implementation
 Uses
    ESoft.Launcher.UI.AppGroupEditor,
    ESoft.Launcher.UI.ParamBrowser,
-   ESoft.UI.Downloader,
    ESoft.Launcher.UI.BackupRestore,
    ESoft.Launcher.UI.ClipboardBrowser;
 
 Const
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000128;
-   cAppVersion = '1.0.1.28';
+   cApplication_Version = 01000130;
+   cAppVersion = '1.0.1.30';
 
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
@@ -364,6 +370,51 @@ Function TFormMDIMain.BackupFolder: String;
 Begin
    Result := ParentFolder + cBackups;
 End;
+
+Procedure TFormMDIMain.bkGndFetchAppVersionDetailsWork(aWorker: TBackgroundWorker);
+Var
+   sZipFileName, sFileLink: String;
+   varIDHttp: TIdHTTP;
+   iCntr: Integer;
+Begin
+   varIDHttp := TIdHTTP.Create(Self);
+   Try
+      sZipFileName := ParamStr(0) + ExtractFileExt(cAppZipFileNameInSite);
+      FDownloadManager.Add(cAppZipFileNameInSite, sZipFileName);
+      iCntr := 0;
+      While True Do
+      Begin
+         If bkGndFetchAppVersionDetails.CancellationPending Then
+            Break;
+
+         Try
+            Inc(iCntr);
+            sFileLink := Format(cAppZipLinkedFileNameFormat, [iCntr]);
+            sZipFileName := ParamStr(0) + ExtractFileExt(sFileLink);
+            varIDHttp.Head(sFileLink);
+            If varIDHttp.ResponseCode = 200 Then
+            Begin
+               FDownloadManager.Add(sFileLink, sZipFileName);
+               // Delete the file if exists { Ajmal }
+               If FileExists(sZipFileName) Then
+               Begin
+                  If Not DeleteFile(sZipFileName) Then
+                     Raise Exception.Create('Cannot delete the file.');
+               End;
+            End;
+         Except
+            Break; // No more file exist so exit loop. { Ajmal }
+         End;
+      End;
+   Finally
+      varIDHttp.Free;
+   End;
+End;
+
+procedure TFormMDIMain.bkGndFetchAppVersionDetailsWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
+begin
+  tskDlgGetVersionDetails.Buttons[0].Click;
+end;
 
 procedure TFormMDIMain.bkGndUpdateAppListWork(Worker: TBackgroundWorker);
 begin
@@ -857,11 +908,8 @@ End;
 Procedure TFormMDIMain.PMItemCheckforupdateClick(Sender: TObject);
 Var
    iAppVersion: Integer;
-   sMainZipFilaeName, sZipFilaeName, sFileLink: String;
-   varIDHttp: TIdHTTP;
+   sMainZipFilaeName: String;
    varZipFile: TAbUnZipper;
-   varDownloadManager: IEDownloadManager;
-   iCntr: Integer;
 Begin
    iAppVersion := StrToInt(GetAppVersionFromSite(cUniqueAppVersionCode));
    If cApplication_Version < iAppVersion Then
@@ -869,36 +917,16 @@ Begin
       If MessageDlg(cNewAppVersionAvailablePrompt, mtWarning, [mbYes, mbNo], 0, mbNo) = mrYes Then
       Begin
          sMainZipFilaeName := ParamStr(0) + '.zip';
-         varDownloadManager := TEDownloadManager.Create(Self);
+         FDownloadManager := TEDownloadManager.Create(Self);
          varZipFile := TAbUnZipper.Create(Self);
-         varIDHttp := TIdHTTP.Create(Self);
          Try
-            sZipFilaeName := ParamStr(0) + ExtractFileExt(cAppZipFileNameInSite);
-            varDownloadManager.Add(cAppZipFileNameInSite, sZipFilaeName);
-            iCntr := 0;
-            While True Do
-            Begin
-               Try
-                  Inc(iCntr);
-                  sFileLink := Format(cAppZipLinkedFileNameFormat, [iCntr]);
-                  sZipFilaeName := ParamStr(0) + ExtractFileExt(sFileLink);
-                  varIDHttp.Head(sFileLink);
-                  If varIDHttp.ResponseCode = 200 Then
-                  Begin
-                     varDownloadManager.Add(sFileLink, sZipFilaeName);
-                     // Delete the file if exists { Ajmal }
-                     If FileExists(sZipFilaeName) Then
-                     Begin
-                        If Not DeleteFile(sZipFilaeName) Then
-                           Raise Exception.Create('Cannot delete the file.');
-                     End;
-                  End;
-               Except
-                  Break; // No more file exist so exit loop. { Ajmal }
-               End;
-            End;
+            bkGndFetchAppVersionDetails.Execute;
+            tskDlgGetVersionDetails.Execute;
 
-            If varDownloadManager.Download Then
+            If bkGndFetchAppVersionDetails.CancellationPending Then
+               Exit;
+
+            If FDownloadManager.Download Then
             Begin
                If FileExists(ParentFolder + 'Old_' + ExtractFileName(ParamStr(0))) Then
                Begin
@@ -921,7 +949,7 @@ Begin
                PMItemExit.Click;
             End;
          Finally
-            varIDHttp.Free;
+            FDownloadManager := Nil;
             varZipFile.Free;
          End;
       End;
@@ -1139,9 +1167,22 @@ Begin
    PMItemRunasAdministrator.Checked := aValue;
 End;
 
+Procedure TFormMDIMain.tskDlgGetVersionDetailsButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
+Begin
+   If bkGndFetchAppVersionDetails.IsWorking Then
+   Begin
+      CanClose := MessageDlg('Are you sure you want to cancel ?', mtWarning, [mbYes, mbNo], 0, mbNo) = mrYes;
+      If CanClose Then
+      Begin
+         bkGndFetchAppVersionDetails.Cancel;
+         bkGndFetchAppVersionDetails.WaitFor;
+      End;
+   End;
+End;
+
 procedure TFormMDIMain.tskDlgUpdateListButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
 begin
-   if bkGndUpdateAppList.IsWorking then
+   If bkGndUpdateAppList.IsWorking Then
    Begin
       CanClose := MessageDlg('Are you sure you want to cancel ?', mtWarning, [mbYes, mbNo], 0, mbNo) = mrYes;
       If CanClose Then

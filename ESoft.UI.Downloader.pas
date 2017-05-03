@@ -380,9 +380,7 @@ Begin
         cProgressUpdateFileSize:
         Begin
            pbAll.Position := pbAll.Position + 1;
-           If pbAll.Position > (pbAll.Max - 1) Then
-              pbAll.Position := pbAll.Max - 1;
-           lblFileIndex.Caption := Format(cFileCountProgress, [pbAll.Position, pbAll.Max - 1]);
+           lblFileIndex.Caption := Format(cFileCountProgress, [pbAll.Position, pbAll.Max]);
            pbMain.Position := 0;
            pbMain.Max := Round(FDownloader.FileSize / FDownloader.PacketSize);
            lblText.Caption := FDownloader.URL;

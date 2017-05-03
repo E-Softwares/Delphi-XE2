@@ -313,16 +313,29 @@ Function TFormParameterBrowser.GetParameter: String;
 Var
    iCntr: Integer;
    varCurrMenuItem: TMenuItem;
+   varSelectedConnParam: TEConnectionParameter;
+   bExcludeAdditionalParams: Boolean;
 Begin
    Result := '';
+   bExcludeAdditionalParams := False;
 
-   For iCntr := 0 To Pred(PopupMenuAdditionalParameters.Items.Count) Do
+   If ClntDSetParameters.RecordCount > 0 Then
    Begin
-      varCurrMenuItem := PopupMenuAdditionalParameters.Items[iCntr];
-      If varCurrMenuItem.Checked Then
-         Result := Result + ' ' + Trim(varCurrMenuItem.Hint);
+      varSelectedConnParam := TEConnectionParameter(ClntDSetParametersData.AsInteger);
+      bExcludeAdditionalParams := varSelectedConnParam.ExcludeAdditionalParams;
    End;
-   Result := Trim(Result) + ' ' + Trim(EditParam.Text);
+
+   If Not bExcludeAdditionalParams Then
+   Begin
+     For iCntr := 0 To Pred(PopupMenuAdditionalParameters.Items.Count) Do
+     Begin
+        varCurrMenuItem := PopupMenuAdditionalParameters.Items[iCntr];
+        If varCurrMenuItem.Checked Then
+           Result := Result + ' ' + Trim(varCurrMenuItem.Hint);
+     End;
+   End;
+
+   Result := Trim(Trim(Result) + ' ' + Trim(EditParam.Text));
 End;
 
 Procedure TFormParameterBrowser.lbAdditionalParamsExit(Sender: TObject);

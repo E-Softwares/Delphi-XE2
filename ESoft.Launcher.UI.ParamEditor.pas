@@ -31,6 +31,7 @@ Type
       Label2: TLabel;
       cbCategory: TComboBox;
       Label7: TLabel;
+      chkExcludeAdditionalParameters: TCheckBox;
       Procedure chkConnectionParamClick(Sender: TObject);
       Procedure btnOKClick(Sender: TObject);
       Procedure edtParamNameKeyPress(Sender: TObject; Var Key: Char);
@@ -93,10 +94,15 @@ Begin
       Parameter.ParamCategory := cbCategory.Text
    Else
       Parameter.ParamCategory := '';
+
    Case iParameterType Of
       cParamTypeConnection:
          Begin
-            TEConnectionParameter(FParameter).Connection := cbConnections.Text;
+            With TEConnectionParameter(FParameter) Do
+            Begin
+              Connection := cbConnections.Text;
+              ExcludeAdditionalParams := chkExcludeAdditionalParameters.Checked;
+            End;
          End;
       cParamTypeAdditional:
          Begin
@@ -125,6 +131,7 @@ end;
 Procedure TFormParamEditor.chkConnectionParamClick(Sender: TObject);
 Begin
    chkDefaultInclude.Enabled := Not chkConnectionParam.Checked;
+   chkExcludeAdditionalParameters.Enabled := chkConnectionParam.Checked;
    cbConnections.Enabled := chkConnectionParam.Checked;
    cbCategory.Enabled := chkConnectionParam.Checked;
 End;
@@ -169,6 +176,9 @@ begin
 end;
 
 Procedure TFormParamEditor.LoadData(const aParameter: TEParameterBase);
+var
+  varConnParam: TEConnectionParameter Absolute aParameter;
+  varAdditionalParam: TEAdditionalParameter Absolute aParameter;
 Begin
    chkConnectionParamClick(Nil);
 
@@ -176,10 +186,17 @@ Begin
    edtParameter.Text := aParameter.Parameter;
    chkConnectionParam.Checked := aParameter Is TEConnectionParameter;
    cbCategory.Text := aParameter.ParamCategory;
+
    If Not chkConnectionParam.Checked Then
-      chkDefaultInclude.Checked := TEAdditionalParameter(aParameter).DefaultInclude
+   Begin
+      chkDefaultInclude.Checked := varAdditionalParam.DefaultInclude;
+      chkExcludeAdditionalParameters.Checked := False;
+   End
    Else
+   Begin
+      chkExcludeAdditionalParameters.Checked := varConnParam.ExcludeAdditionalParams;
       cbConnections.ItemIndex := cbConnections.Items.IndexOf(TEConnectionParameter(aParameter).Connection);
+   End;
 End;
 
 End.
