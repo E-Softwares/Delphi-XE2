@@ -77,6 +77,11 @@ Const
 
    cMenuSeperatorCaption = '-';
 
+   // In the order MMmmRRBB
+   // M - Major, m - Minor, R - Release and B - Build { Ajmal }
+   cApplication_Version = 01000131;
+   cAppVersion = '1.0.1.31';   
+
 Type
    TFormMDIMain = Class(TForm)
       OpenDialog: TOpenDialog;
@@ -145,6 +150,7 @@ Type
       actSendMailDeveloper: TSendMail;
       tskDlgGetVersionDetails: TTaskDialog;
       bkGndFetchAppVersionDetails: TBackgroundWorker;
+      PMItemFavorite: TMenuItem;
       Procedure sBtnBrowseConnectionClick(Sender: TObject);
       Procedure edtConnectionRightButtonClick(Sender: TObject);
       Procedure FormCreate(Sender: TObject);
@@ -179,6 +185,7 @@ Type
       Procedure bkGndFetchAppVersionDetailsWork(aWorker: TBackgroundWorker);
       procedure bkGndFetchAppVersionDetailsWorkComplete(Worker: TBackgroundWorker; Cancelled: Boolean);
       procedure tskDlgGetVersionDetailsButtonClicked(Sender: TObject; ModalResult: TModalResult; var CanClose: Boolean);
+    procedure PMItemFavoriteClick(Sender: TObject);
       // Private declarations. Variables/Methods can be access inside this class and other class in the same unit. { Ajmal }
    Strict Private
       // Strict Private declarations. Variables/Methods can be access inside this class only. { Ajmal }
@@ -262,11 +269,6 @@ Uses
    ESoft.Launcher.UI.ClipboardBrowser;
 
 Const
-   // In the order MMmmRRBB
-   // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000130;
-   cAppVersion = '1.0.1.30';
-
    cIMG_DELETE = 4;
    cIMG_BRANCH = 9;
    cIMG_CATEGORY = 19;
@@ -1015,6 +1017,11 @@ Begin
    SaveConfig;
    Application.Terminate;
 End;
+
+procedure TFormMDIMain.PMItemFavoriteClick(Sender: TObject);
+begin
+  raise Exception.Create('Funtionality not implimented yet.');
+end;
 
 Procedure TFormMDIMain.PanelDeveloperClick(Sender: TObject);
 Begin

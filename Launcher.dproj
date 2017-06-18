@@ -78,8 +78,10 @@
 			<DCC_RemoteDebug>true</DCC_RemoteDebug>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+			<Debugger_EnvVars>JCLPath=3rd Party\JCL\;$(Debugger_EnvVars)</Debugger_EnvVars>
+			<DCC_DebugInfoInTds>true</DCC_DebugInfoInTds>
 			<DCC_DebugDCUs>true</DCC_DebugDCUs>
-			<DCC_UnitSearchPath>$(ES_DELPHICONTROLS);$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+			<DCC_UnitSearchPath>$(ES_DELPHICONTROLS);3rd Party\JCL\source\windows;3rd Party\JCL\source\common;3rd Party\JCL\source\include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<Icon_MainIcon>res\Images\EG_Icon.ico</Icon_MainIcon>
 			<Debugger_IncludeSystemVars>true</Debugger_IncludeSystemVars>
 			<VerInfo_Build>5</VerInfo_Build>
@@ -130,6 +132,9 @@
 				<Form>FormDownloader</Form>
 			</DCCReference>
 			<DCCReference Include="ESoft.Launcher.PopupList.pas"/>
+			<DCCReference Include="ESoft.Launcher.UI.ErrorViewer.pas">
+				<Form>FormExceptionHandler</Form>
+			</DCCReference>
 			<None Include="Launcher.manifest"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>

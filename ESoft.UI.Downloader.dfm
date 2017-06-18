@@ -6,7 +6,7 @@ object FormDownloader: TFormDownloader
   Caption = 'Download Manager'
   ClientHeight = 151
   ClientWidth = 394
-  Color = clBtnFace
+  Color = 14871789
   Constraints.MaxHeight = 180
   Constraints.MaxWidth = 400
   Constraints.MinHeight = 180

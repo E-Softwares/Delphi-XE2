@@ -164,7 +164,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 66
-        Height = 13
+        Height = 24
         Margins.Left = 8
         Align = alLeft
         Caption = 'Connections'
@@ -309,6 +309,10 @@ object FormMDIMain: TFormMDIMain
       Caption = 'Categories'
       ImageIndex = 44
       Visible = False
+    end
+    object PMItemFavorite: TMenuItem
+      Caption = 'Favorite'
+      OnClick = PMItemFavoriteClick
     end
     object PMItemNotes: TMenuItem
       Caption = 'Notes'
