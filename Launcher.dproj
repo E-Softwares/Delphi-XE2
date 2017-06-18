@@ -71,6 +71,9 @@
 			<DCC_Namespace>Winapi;System.Win;Data.Win;Datasnap.Win;Web.Win;Soap.Win;Xml.Win;Bde;$(DCC_Namespace)</DCC_Namespace>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1)'!=''">
+			<Manifest_File>None</Manifest_File>
+			<VerInfo_Locale>16393</VerInfo_Locale>
+			<VerInfo_Keys>CompanyName=;FileDescription=;FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.0</VerInfo_Keys>
 			<DCC_Define>DEBUG;$(DCC_Define)</DCC_Define>
 			<DCC_Optimize>false</DCC_Optimize>
 			<DCC_GenerateStackFrames>true</DCC_GenerateStackFrames>
@@ -78,8 +81,8 @@
 			<DCC_RemoteDebug>true</DCC_RemoteDebug>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+			<Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
 			<Debugger_EnvVars>JCLPath=3rd Party\JCL\;$(Debugger_EnvVars)</Debugger_EnvVars>
-			<DCC_DebugInfoInTds>true</DCC_DebugInfoInTds>
 			<DCC_DebugDCUs>true</DCC_DebugDCUs>
 			<DCC_UnitSearchPath>$(ES_DELPHICONTROLS);3rd Party\JCL\source\windows;3rd Party\JCL\source\common;3rd Party\JCL\source\include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<Icon_MainIcon>res\Images\EG_Icon.ico</Icon_MainIcon>
