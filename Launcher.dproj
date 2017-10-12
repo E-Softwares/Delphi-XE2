@@ -138,6 +138,7 @@
 			<DCCReference Include="ESoft.Launcher.UI.ErrorViewer.pas">
 				<Form>FormExceptionHandler</Form>
 			</DCCReference>
+			<DCCReference Include="ESoft.Launcher.FavouriteItems.pas"/>
 			<None Include="Launcher.manifest"/>
 			<BuildConfiguration Include="Release">
 				<Key>Cfg_2</Key>

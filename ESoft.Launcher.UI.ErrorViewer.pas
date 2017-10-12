@@ -105,6 +105,7 @@ begin
   if MessageDlg('Do you want to copy error message to clipboard ?', mtConfirmation, [mbYes, mbNo], 0, mbYes) = mrYes then
     btnCopyStackTrace.Click;
   ShellExecute(Handle, 'open', cExceptionReportLink, '', '', SW_HIDE);
+  ModalResult := mrClose;
 end;
 
 procedure TFormExceptionHandler.btnPrintClick(Sender: TObject);
@@ -143,6 +144,8 @@ begin
 end;
 
 procedure TFormExceptionHandler.AppException(aSender: TObject; aExcept: Exception);
+var
+  bFormShowing: Boolean;
 begin
   edtBuildNumber.Text := cAppVersion;
   memTechnical.Lines.Clear;
@@ -153,7 +156,11 @@ begin
   memTechnical.Lines.Add('');
 
   JclLastExceptStackListToStrings(memTechnical.Lines, False, True, True);
+
+  bFormShowing := FormMDIMain.Visible;
+  FormMDIMain.Show;
   _varErrorFrame.ShowModal;
+  FormMDIMain.Visible := bFormShowing;
 end;
 
 initialization

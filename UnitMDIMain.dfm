@@ -312,6 +312,7 @@ object FormMDIMain: TFormMDIMain
     end
     object PMItemFavorite: TMenuItem
       Caption = 'Favorite'
+      Enabled = False
       OnClick = PMItemFavoriteClick
     end
     object PMItemNotes: TMenuItem

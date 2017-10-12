@@ -79,8 +79,8 @@ Const
 
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000131;
-   cAppVersion = '1.0.1.31';   
+   cApplication_Version = 01000132;
+   cAppVersion = '1.0.1.32';
 
 Type
    TFormMDIMain = Class(TForm)
@@ -720,7 +720,7 @@ Begin
          iDay := StrToInt(sFileDateArray[cDate_Day]);
          varDate := EncodeDate(iYear, iMonth, iDay);
 
-         If varDate < (Date - 2) Then
+         If varDate < (Date - 15) Then
             DeleteFile(BackupFolder + varSearch.Name);
 
       Until FindNext(varSearch) <> 0;
@@ -1672,10 +1672,15 @@ Var
    varRecentItems: TERecentItem;
    bRunAsAdmin: Boolean;
 Begin
-   bRunAsAdmin := (aRunAsAdmin = cbChecked) Or ((aRunAsAdmin = cbGrayed) And (IsRunAsAdmin));
+   bRunAsAdmin := (aRunAsAdmin = cbChecked) Or ((aRunAsAdmin = cbGrayed) And IsRunAsAdmin);
    Try
       If bRunAsAdmin Then
+      Try
          RunAsAdmin(Handle, PWideChar(aExecutableName), PWideChar(aParameter), PWideChar(aSourcePath))
+      Except
+        If MessageDlg('Cannot run as admin' + sLineBreak +  'Do you wan''t to run normal mode ?', mtError, [mbYes, mbNo], 0, mbYes) = mrYes Then 
+          ShellExecute(Handle, 'open', PWideChar(aExecutableName), PWideChar(aParameter), PWideChar(aSourcePath), SW_SHOWNORMAL);
+      End
       Else
          ShellExecute(Handle, 'open', PWideChar(aExecutableName), PWideChar(aParameter), PWideChar(aSourcePath), SW_SHOWNORMAL);
 

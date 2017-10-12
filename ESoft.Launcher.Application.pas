@@ -357,9 +357,6 @@ End;
 Function TEApplicationGroup.GetRunAsAdmin: TCheckBoxState;
 Begin
    Result := FRunAsAdmin;
-   // If this is a folder, then never run as admin { Ajmal }
-   If IsFolder Then
-      Result := cbUnchecked;
 End;
 
 Function TEApplicationGroup.GetSubItems: TEApplicationGroups;
@@ -882,6 +879,7 @@ Function TEApplication.RunExecutable(aParameter: String): Boolean;
 var
    sFileName: String;
    sTargetFolder: String;
+   varRunAsAdmin: TCheckBoxState;
 Begin
    If ISFixedParameter Then
       aParameter := aParameter + ' ' + Owner.FixedParameter;
@@ -895,13 +893,21 @@ Begin
       sTargetFolder := Owner.FinalSourceFolder;
    End;
 
+   varRunAsAdmin := Owner.RunAsAdmin;
+   If Owner.IsFolder And (varRunAsAdmin <> cbUnchecked) Then
+   Begin
+      // Currently we can only run exe files as admin { Ajmal }
+      If Not SameText(Extension, '.exe') Then
+         varRunAsAdmin := cbUnchecked;
+   End;
+
    FormMDIMain.RunApplication(
       Name,
       sFileName,
       aParameter,
       sTargetFolder,
       Owner.SkipFromRecent,
-      Owner.RunAsAdmin
+      varRunAsAdmin
    );
 End;
 

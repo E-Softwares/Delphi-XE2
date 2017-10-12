@@ -22,7 +22,8 @@ uses
   ESoft.Launcher.UI.ClipboardBrowser in 'ESoft.Launcher.UI.ClipboardBrowser.pas' {FormClipboardBrowser},
   ESoft.UI.Downloader in 'ESoft.UI.Downloader.pas' {FormDownloader},
   ESoft.Launcher.PopupList in 'ESoft.Launcher.PopupList.pas',
-  ESoft.Launcher.UI.ErrorViewer in 'ESoft.Launcher.UI.ErrorViewer.pas' {FormExceptionHandler};
+  ESoft.Launcher.UI.ErrorViewer in 'ESoft.Launcher.UI.ErrorViewer.pas' {FormExceptionHandler},
+  ESoft.Launcher.FavouriteItems in 'ESoft.Launcher.FavouriteItems.pas';
 
 {$R *.res}
 
