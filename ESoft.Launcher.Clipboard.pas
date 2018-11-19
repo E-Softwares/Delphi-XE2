@@ -5,7 +5,11 @@ Interface
 Uses
    Winapi.Windows,
    System.Classes,
-   DBXJSON,
+   {$IFDEF VER230}
+      DBXJSON,
+   {$ELSE}
+      JSON,
+   {$ENDIF}
    IniFiles,
    System.SysUtils,
    ShellApi,

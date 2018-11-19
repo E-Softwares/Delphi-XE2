@@ -137,7 +137,8 @@ Type
       Procedure SetDestFolder(Const Value: String);
       Procedure SetFileMask(Const Value: String);
       Function AddItem: TEApplication;
-      Function InsertItem(Const aIndex: Integer): TEApplication;
+      Function InsertItem(Const aFileName: String): TEApplication; Overload;
+      Function InsertItem: TEApplication; Overload;
       Function GetIcon: TIcon;
       Function GetFinalSourceFolder: String;
       procedure SetSourceFolderPrefix(const Value: String);
@@ -277,10 +278,39 @@ Begin
    Inherited;
 End;
 
-Function TEApplicationGroup.InsertItem(Const aIndex: Integer): TEApplication;
+Function TEApplicationGroup.InsertItem(Const aFileName: String): TEApplication;
+var
+  iCntr: Integer;
+  varApp: TEApplication;
 Begin
    Result := TEApplication.Create(Self);
-   Insert(aIndex, Result);
+   Result.FileName := aFileName;
+   If Result.BuildNumber = cInvalidBuildNumber Then
+   Begin
+      Insert(0, Result);
+      Exit;
+   End;
+
+   iCntr := 0;
+   While iCntr < Count Do
+   Begin
+      varApp := Self[iCntr];
+      If varApp.BuildNumber = cInvalidBuildNumber Then
+        Continue;
+        
+      If Result.BuildNumber > varApp.BuildNumber Then
+        Break;
+
+      Inc(iCntr);
+   End;
+
+   Insert(iCntr, Result);
+End;
+
+Function TEApplicationGroup.InsertItem: TEApplication;
+Begin
+   Result := TEApplication.Create(Self);
+   Insert(0, Result);
 End;
 
 Function TEApplicationGroup.IsBranchingEnabled: Boolean;
@@ -403,14 +433,14 @@ Begin
                   End;
                End
                Else If (sCurrFileMask <> '*') Then
-                  InsertItem(0).FileName := varSearch.Name;
+                  InsertItem.FileName := varSearch.Name;
             Until FindNext(varSearch) <> 0;
             FindClose(varSearch);
          End
          Else If FindFirst(sCurrFileMask, faArchive, varSearch) = 0 Then
          Begin
             Repeat
-               InsertItem(0).FileName := varSearch.Name;
+               InsertItem(varSearch.Name);
             Until FindNext(varSearch) <> 0;
             FindClose(varSearch);
          End;
@@ -691,16 +721,25 @@ End;
 Function TEApplication.BuildNumber: Integer;
 var
    iLen: Integer;
+   iBuildNumber: Integer;
 Begin
+   Result := cInvalidBuildNumber;
    If Not Owner.IsBranchingEnabled Then
-      Exit(cInvalidBuildNumber);
+      Exit;
 
    Try
       iLen := Length(VersionName);
       If iLen >= cBRANCH_BUILD_VERSION Then
-         Result := StrToInt(Trim(VersionName[cBRANCH_BUILD_VERSION]))
+      Begin
+         If TryStrToInt(Trim(VersionName[cBRANCH_BUILD_VERSION]), iBuildNumber) Then 
+            Result := iBuildNumber;
+      End
       Else If iLen <> 0 Then         
-         Result := StrToInt(Trim(VersionName[Length(VersionName) - 1])); // Try to get the last number at least { Ajmal }
+      Begin
+         // Try to get the last number at least { Ajmal }
+         If TryStrToInt(Trim(VersionName[Length(VersionName) - 1]), iBuildNumber) Then 
+            Result := iBuildNumber; 
+      End;
    Except
       Result := cInvalidBuildNumber;
    End;

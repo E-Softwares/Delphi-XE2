@@ -79,8 +79,8 @@ Const
 
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000132;
-   cAppVersion = '1.0.1.32';
+   cApplication_Version = 01000133;
+   cAppVersion = '1.0.1.33';
 
 Type
    TFormMDIMain = Class(TForm)

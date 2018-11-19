@@ -28,6 +28,12 @@
 			<CfgParent>Base</CfgParent>
 			<Base>true</Base>
 		</PropertyGroup>
+		<PropertyGroup Condition="('$(Platform)'=='Win64' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win64)'!=''">
+			<Cfg_1_Win64>true</Cfg_1_Win64>
+			<CfgParent>Cfg_1</CfgParent>
+			<Cfg_1>true</Cfg_1>
+			<Base>true</Base>
+		</PropertyGroup>
 		<PropertyGroup Condition="('$(Platform)'=='Win32' and '$(Cfg_1)'=='true') or '$(Cfg_1_Win32)'!=''">
 			<Cfg_1_Win32>true</Cfg_1_Win32>
 			<CfgParent>Cfg_1</CfgParent>
@@ -80,18 +86,23 @@
 			<DCC_DebugInfoInExe>true</DCC_DebugInfoInExe>
 			<DCC_RemoteDebug>true</DCC_RemoteDebug>
 		</PropertyGroup>
+		<Import Condition="'$(Cfg_1_Win64)'!='' And Exists('res\32Bit App Version Config.optset')" Project="res\32Bit App Version Config.optset"/>
+		<PropertyGroup Condition="'$(Cfg_1_Win64)'!=''">
+			<CfgDependentOn>res\32Bit App Version Config.optset</CfgDependentOn>
+		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
+			<VerInfo_Release>1</VerInfo_Release>
 			<Manifest_File>$(BDS)\bin\default_app.manifest</Manifest_File>
 			<Debugger_EnvVars>JCLPath=3rd Party\JCL\;$(Debugger_EnvVars)</Debugger_EnvVars>
 			<DCC_DebugDCUs>true</DCC_DebugDCUs>
 			<DCC_UnitSearchPath>$(ES_DELPHICONTROLS);3rd Party\JCL\source\windows;3rd Party\JCL\source\common;3rd Party\JCL\source\include;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
 			<Icon_MainIcon>res\Images\EG_Icon.ico</Icon_MainIcon>
 			<Debugger_IncludeSystemVars>true</Debugger_IncludeSystemVars>
-			<VerInfo_Build>5</VerInfo_Build>
+			<VerInfo_Build>33</VerInfo_Build>
 			<DCC_Define>AbbreviaZipper;$(DCC_Define)</DCC_Define>
 			<VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
 			<VerInfo_Locale>1033</VerInfo_Locale>
-			<VerInfo_Keys>CompanyName=DelScript;FileDescription=Easy application launcher;FileVersion=1.0.0.5;InternalName=Application Launcher;LegalCopyright=Copyright @ 2016;LegalTrademarks=;OriginalFilename=;ProductName=;ProductVersion=1.0.0.1;Comments=Developed by Muhammad Ajmal P</VerInfo_Keys>
+			<VerInfo_Keys>CompanyName=Erratum Solutions;FileDescription=Easy App Launcher;FileVersion=1.0.1.33;InternalName=Application Launcher;LegalCopyright=Copyright @ 2018;LegalTrademarks=;OriginalFilename=;ProductName=Launcher;ProductVersion=1.0.0.1;Comments=Developed by Muhammad Ajmal P</VerInfo_Keys>
 			<DCC_RemoteDebug>false</DCC_RemoteDebug>
 		</PropertyGroup>
 		<PropertyGroup Condition="'$(Cfg_2)'!=''">
@@ -198,23 +209,10 @@
 							<RemoteName>Launcher.exe</RemoteName>
 						</Platform>
 					</DeployFile>
-					<DeployClass Name="DependencyPackage" Required="true">
-						<Platform Name="iOSDevice">
+					<DeployClass Name="Android_SplashImage470">
+						<Platform Name="Android">
+							<RemoteDir>res\drawable-normal</RemoteDir>
 							<Operation>1</Operation>
-							<Extensions>.dylib</Extensions>
-						</Platform>
-						<Platform Name="Win32">
-							<Operation>0</Operation>
-							<Extensions>.bpl</Extensions>
-						</Platform>
-						<Platform Name="OSX32">
-							<RemoteDir>Contents\MacOS</RemoteDir>
-							<Operation>1</Operation>
-							<Extensions>.dylib</Extensions>
-						</Platform>
-						<Platform Name="iOSSimulator">
-							<Operation>1</Operation>
-							<Extensions>.dylib</Extensions>
 						</Platform>
 					</DeployClass>
 					<DeployClass Name="DependencyModule">
@@ -236,17 +234,30 @@
 							<Extensions>.dylib</Extensions>
 						</Platform>
 					</DeployClass>
+					<DeployClass Name="DependencyPackage" Required="true">
+						<Platform Name="iOSDevice">
+							<Operation>1</Operation>
+							<Extensions>.dylib</Extensions>
+						</Platform>
+						<Platform Name="Win32">
+							<Operation>0</Operation>
+							<Extensions>.bpl</Extensions>
+						</Platform>
+						<Platform Name="OSX32">
+							<RemoteDir>Contents\MacOS</RemoteDir>
+							<Operation>1</Operation>
+							<Extensions>.dylib</Extensions>
+						</Platform>
+						<Platform Name="iOSSimulator">
+							<Operation>1</Operation>
+							<Extensions>.dylib</Extensions>
+						</Platform>
+					</DeployClass>
 					<DeployClass Name="iPad_Launch2048">
 						<Platform Name="iOSDevice">
 							<Operation>1</Operation>
 						</Platform>
 						<Platform Name="iOSSimulator">
-							<Operation>1</Operation>
-						</Platform>
-					</DeployClass>
-					<DeployClass Name="ProjectOSXInfoPList">
-						<Platform Name="OSX32">
-							<RemoteDir>Contents</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
@@ -256,15 +267,21 @@
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
-					<DeployClass Name="Android_SplashImage470">
+					<DeployClass Name="AndroidLibnativeMipsFile">
 						<Platform Name="Android">
-							<RemoteDir>res\drawable-normal</RemoteDir>
+							<RemoteDir>library\lib\mips</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
-					<DeployClass Name="AndroidLibnativeX86File">
+					<DeployClass Name="ProjectOSXInfoPList">
+						<Platform Name="OSX32">
+							<RemoteDir>Contents</RemoteDir>
+							<Operation>1</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="AndroidGDBServer">
 						<Platform Name="Android">
-							<RemoteDir>library\lib\x86</RemoteDir>
+							<RemoteDir>library\lib\armeabi-v7a</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
@@ -279,12 +296,6 @@
 					<DeployClass Name="ProjectOSXEntitlements">
 						<Platform Name="OSX32">
 							<RemoteDir>Contents</RemoteDir>
-							<Operation>1</Operation>
-						</Platform>
-					</DeployClass>
-					<DeployClass Name="AndroidGDBServer">
-						<Platform Name="Android">
-							<RemoteDir>library\lib\armeabi-v7a</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
@@ -308,6 +319,12 @@
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
+					<DeployClass Name="Android_LauncherIcon144">
+						<Platform Name="Android">
+							<RemoteDir>res\drawable-xxhdpi</RemoteDir>
+							<Operation>1</Operation>
+						</Platform>
+					</DeployClass>
 					<DeployClass Name="iPhone_Launch320">
 						<Platform Name="iOSDevice">
 							<Operation>1</Operation>
@@ -316,21 +333,35 @@
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
-					<DeployClass Name="Android_LauncherIcon144">
-						<Platform Name="Android">
-							<RemoteDir>res\drawable-xxhdpi</RemoteDir>
+					<DeployClass Name="UWP_DelphiLogo150">
+						<Platform Name="Win64">
+							<RemoteDir>Assets</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
-					</DeployClass>
-					<DeployClass Name="AndroidLibnativeMipsFile">
-						<Platform Name="Android">
-							<RemoteDir>library\lib\mips</RemoteDir>
+						<Platform Name="Win32">
+							<RemoteDir>Assets</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
 					<DeployClass Name="AndroidSplashImageDef">
 						<Platform Name="Android">
 							<RemoteDir>res\drawable</RemoteDir>
+							<Operation>1</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="UWP_DelphiLogo44">
+						<Platform Name="Win64">
+							<RemoteDir>Assets</RemoteDir>
+							<Operation>1</Operation>
+						</Platform>
+						<Platform Name="Win32">
+							<RemoteDir>Assets</RemoteDir>
+							<Operation>1</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="AndroidLibnativeX86File">
+						<Platform Name="Android">
+							<RemoteDir>library\lib\x86</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
@@ -402,9 +433,20 @@
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
+					<DeployClass Name="AndroidServiceOutput">
+						<Platform Name="Android">
+							<RemoteDir>library\lib\armeabi-v7a</RemoteDir>
+							<Operation>1</Operation>
+						</Platform>
+					</DeployClass>
 					<DeployClass Name="Android_DefaultAppIcon">
 						<Platform Name="Android">
 							<RemoteDir>res\drawable</RemoteDir>
+							<Operation>1</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="ProjectiOSDeviceResourceRules">
+						<Platform Name="iOSDevice">
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
@@ -414,16 +456,17 @@
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
-					<DeployClass Name="ProjectiOSDeviceResourceRules">
-						<Platform Name="iOSDevice">
-							<Operation>1</Operation>
-						</Platform>
-					</DeployClass>
 					<DeployClass Name="iPad_Launch768">
 						<Platform Name="iOSDevice">
 							<Operation>1</Operation>
 						</Platform>
 						<Platform Name="iOSSimulator">
+							<Operation>1</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="AndroidLibnativeArmeabiFile">
+						<Platform Name="Android">
+							<RemoteDir>library\lib\armeabi</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
@@ -443,12 +486,6 @@
 							<Operation>1</Operation>
 						</Platform>
 						<Platform Name="iOSSimulator">
-							<Operation>1</Operation>
-						</Platform>
-					</DeployClass>
-					<DeployClass Name="AndroidLibnativeArmeabiFile">
-						<Platform Name="Android">
-							<RemoteDir>library\lib\armeabi</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
@@ -484,15 +521,15 @@
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
-					<DeployClass Name="Android_LauncherIcon36">
-						<Platform Name="Android">
-							<RemoteDir>res\drawable-ldpi</RemoteDir>
-							<Operation>1</Operation>
-						</Platform>
-					</DeployClass>
 					<DeployClass Name="AndroidSplashStyles">
 						<Platform Name="Android">
 							<RemoteDir>res\values</RemoteDir>
+							<Operation>1</Operation>
+						</Platform>
+					</DeployClass>
+					<DeployClass Name="Android_LauncherIcon36">
+						<Platform Name="Android">
+							<RemoteDir>res\drawable-ldpi</RemoteDir>
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
@@ -521,12 +558,23 @@
 							<Operation>1</Operation>
 						</Platform>
 					</DeployClass>
+					<DeployClass Name="ProjectUWPManifest">
+						<Platform Name="Win64">
+							<Operation>1</Operation>
+						</Platform>
+						<Platform Name="Win32">
+							<Operation>1</Operation>
+						</Platform>
+					</DeployClass>
+					<ProjectRoot Name="$(PROJECTNAME).app" Platform="iOSDevice32"/>
 					<ProjectRoot Name="$(PROJECTNAME)" Platform="Android"/>
 					<ProjectRoot Name="$(PROJECTNAME).app" Platform="iOSDevice"/>
 					<ProjectRoot Name="$(PROJECTNAME)" Platform="Win32"/>
-					<ProjectRoot Name="$(PROJECTNAME).app" Platform="OSX32"/>
-					<ProjectRoot Name="$(PROJECTNAME).app" Platform="iOSSimulator"/>
+					<ProjectRoot Name="$(PROJECTNAME).app" Platform="iOSDevice64"/>
+					<ProjectRoot Name="$(PROJECTNAME)" Platform="Linux64"/>
 					<ProjectRoot Name="$(PROJECTNAME)" Platform="Win64"/>
+					<ProjectRoot Name="$(PROJECTNAME).app" Platform="iOSSimulator"/>
+					<ProjectRoot Name="$(PROJECTNAME).app" Platform="OSX32"/>
 				</Deployment>
 				<Platforms>
 					<Platform value="Win64">False</Platform>
@@ -539,11 +587,3 @@
 		<Import Condition="Exists('$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj')" Project="$(APPDATA)\Embarcadero\$(BDSAPPDATABASEDIR)\$(PRODUCTVERSION)\UserTools.proj"/>
 		<Import Condition="Exists('$(MSBuildProjectName).deployproj')" Project="$(MSBuildProjectName).deployproj"/>
 	</Project>
-
-<!-- EurekaLog First Line
-[Exception Log]
-EurekaLog Version=7007
-Activate=0
-DeleteMapAfterCompile=0
-Encrypt Password=""
-EurekaLog Last Line -->

@@ -38,5 +38,5 @@ Begin
    Application.MainFormOnTaskbar := True;
    Application.Title := 'Launcher';
    Application.CreateForm(TFormMDIMain, FormMDIMain);
-  Application.Run;
+   Application.Run;
 End.
