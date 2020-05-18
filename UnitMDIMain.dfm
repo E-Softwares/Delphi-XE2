@@ -164,7 +164,7 @@ object FormMDIMain: TFormMDIMain
         Left = 8
         Top = 3
         Width = 66
-        Height = 24
+        Height = 13
         Margins.Left = 8
         Align = alLeft
         Caption = 'Connections'

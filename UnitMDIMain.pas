@@ -79,8 +79,10 @@ Const
 
    // In the order MMmmRRBB
    // M - Major, m - Minor, R - Release and B - Build { Ajmal }
-   cApplication_Version = 01000134;
+   // Deprecated Version.
+   cApplication_Version = '01000134';
    cAppVersion = '1.0.1.34';
+   // Deprecated Version.
 
 Type
    TFormMDIMain = Class(TForm)
